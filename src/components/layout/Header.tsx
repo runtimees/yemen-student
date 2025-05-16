@@ -104,8 +104,7 @@ const Header = () => {
         onSwitchToLogin={openLogin}
       />
 
-      {/* Add custom styles for tooltips */}
-      <style jsx>{`
+      <style>{`
         .tooltip-wrapper {
           position: relative;
         }

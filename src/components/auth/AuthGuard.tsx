@@ -3,6 +3,7 @@ import { ReactNode, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
+import { Loader2 } from 'lucide-react';
 
 interface AuthGuardProps {
   children: ReactNode;
@@ -29,12 +30,15 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
     }, 100);
 
     return () => clearTimeout(checkAuth);
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, toast]);
 
   if (isChecking) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-pulse text-2xl text-yemen-blue">جاري التحميل...</div>
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-yemen-blue" />
+          <div className="text-2xl text-yemen-blue">جاري التحميل...</div>
+        </div>
       </div>
     );
   }

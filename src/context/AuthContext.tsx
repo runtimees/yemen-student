@@ -1,12 +1,8 @@
 
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { useToast } from '@/components/ui/use-toast';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
+import { User } from '@/types/database';
+import { mockDatabase } from '@/services/mockDatabase';
 
 interface AuthContextType {
   user: User | null;
@@ -35,35 +31,67 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Mock login - in a real app, you would authenticate against a server
+    // In a real app, you would authenticate against a real database
+    const user = mockDatabase.getUserByEmail(email);
+    
+    if (user) {
+      // In production, you'd compare hashed passwords
+      setUser(user);
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      toast({
+        title: "تم تسجيل الدخول بنجاح",
+        description: `مرحباً بك ${user.full_name_ar} في منصة الطلبة اليمنيين`,
+      });
+      
+      return true;
+    }
+    
+    // For demo purposes, create a user if not found
     if (email && password) {
-      const newUser = {
-        id: Math.random().toString(36).substring(2, 9),
-        name: email.split('@')[0],
+      const newUser = mockDatabase.createUser({
+        full_name_ar: email.split('@')[0],
+        full_name_en: email.split('@')[0],
         email,
-      };
+        password_hash: password, // In production, this would be hashed
+        role: 'student',
+      });
       
       setUser(newUser);
       localStorage.setItem('user', JSON.stringify(newUser));
       
       toast({
         title: "تم تسجيل الدخول بنجاح",
-        description: `مرحباً بك ${newUser.name} في منصة الطلبة اليمنيين`,
+        description: `مرحباً بك ${newUser.full_name_ar} في منصة الطلبة اليمنيين`,
       });
       
       return true;
     }
+    
     return false;
   };
 
   const signup = async (name: string, email: string, password: string): Promise<boolean> => {
-    // Mock signup - in a real app, you would create a user account on a server
+    // Check if user already exists
+    const existingUser = mockDatabase.getUserByEmail(email);
+    
+    if (existingUser) {
+      toast({
+        title: "البريد الإلكتروني مستخدم",
+        description: "هذا البريد الإلكتروني مسجل مسبقاً",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
     if (name && email && password) {
-      const newUser = {
-        id: Math.random().toString(36).substring(2, 9),
-        name,
+      const newUser = mockDatabase.createUser({
+        full_name_ar: name,
+        full_name_en: name,
         email,
-      };
+        password_hash: password, // In production, this would be hashed
+        role: 'student',
+      });
       
       setUser(newUser);
       localStorage.setItem('user', JSON.stringify(newUser));
