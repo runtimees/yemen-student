@@ -17,7 +17,7 @@ const Index = () => {
     // Show login notification if the user is already logged in when they load the page
     if (isAuthenticated && user) {
       toast({
-        title: `مرحباً ${user.full_name_ar}`, // Using full_name_ar instead of name
+        title: `مرحباً ${user.full_name_ar}`, 
         description: "أنت مسجل الدخول في منصة الطلبة اليمنيين",
       });
     }
@@ -59,11 +59,13 @@ const Index = () => {
         <section className="bg-gradient-to-br from-yemen-black via-gray-800 to-gray-900 text-white py-16 px-4">
           <div className="container mx-auto text-center">
             <div className="flex justify-center mb-6 fade-in" style={{ animationDelay: '0.2s' }}>
-              <img 
-                src="/lovable-uploads/3f42ec74-bc6b-49c4-8f8c-3a5e6895dc36.png" 
-                alt="Yemen Student Platform Logo" 
-                className="h-32 w-auto animate-pulse"
-              />
+              <div className="rounded-full overflow-hidden border-4 border-yemen-red shadow-lg w-32 h-32">
+                <img 
+                  src="/lovable-uploads/3f42ec74-bc6b-49c4-8f8c-3a5e6895dc36.png" 
+                  alt="Yemen Student Platform Logo" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
             </div>
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 fade-in" style={{ animationDelay: '0.4s' }}>
               منصة الطلبة اليمنيين في العراق
@@ -71,12 +73,6 @@ const Index = () => {
             <p className="text-xl md:text-2xl mb-8 text-gray-200 fade-in" style={{ animationDelay: '0.6s' }}>
               نحو تعليم عالٍ أسهل وأكثر تمكينًا
             </p>
-            
-            {!isAuthenticated && (
-              <div className="hidden">
-                {/* These buttons are now in the header */}
-              </div>
-            )}
           </div>
         </section>
 

@@ -1,6 +1,7 @@
 
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { useToast } from '@/components/ui/use-toast';
+import { toast as sonnerToast } from '@/components/ui/sonner';
 import { User } from '@/types/database';
 import { mockDatabase } from '@/services/mockDatabase';
 
@@ -29,6 +30,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
     }
   }, []);
+  
+  // Function to simulate sending an email notification
+  const sendEmailNotification = (email: string, subject: string, message: string) => {
+    console.log(`Email notification sent to ${email}`);
+    console.log(`Subject: ${subject}`);
+    console.log(`Message: ${message}`);
+    
+    // Show a toast to simulate email notification in the demo
+    sonnerToast("تم إرسال إشعار", {
+      description: `تم إرسال إشعار بتسجيل الدخول إلى ${email}`,
+      action: {
+        label: "عرض",
+        onClick: () => console.log("View email notification"),
+      },
+    });
+  };
 
   const login = async (email: string, password: string): Promise<boolean> => {
     // In a real app, you would authenticate against a real database
@@ -43,6 +60,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         title: "تم تسجيل الدخول بنجاح",
         description: `مرحباً بك ${user.full_name_ar} في منصة الطلبة اليمنيين`,
       });
+      
+      // Send email notification for login
+      sendEmailNotification(
+        user.email,
+        "تسجيل دخول جديد - منصة الطلبة اليمنيين",
+        `مرحباً ${user.full_name_ar},\n\nتم تسجيل دخول جديد إلى حسابك في منصة الطلبة اليمنيين.\nإذا لم تكن أنت من قام بهذا الإجراء، يرجى الاتصال بالدعم الفني فوراً.\n\nمع تحيات فريق منصة الطلبة اليمنيين`
+      );
       
       return true;
     }
@@ -64,6 +88,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         title: "تم تسجيل الدخول بنجاح",
         description: `مرحباً بك ${newUser.full_name_ar} في منصة الطلبة اليمنيين`,
       });
+      
+      // Send email notification for new account creation
+      sendEmailNotification(
+        newUser.email,
+        "مرحباً بك في منصة الطلبة اليمنيين",
+        `مرحباً ${newUser.full_name_ar},\n\nشكراً لإنشاء حساب في منصة الطلبة اليمنيين. نحن سعداء بانضمامك إلينا.\n\nمع تحيات فريق منصة الطلبة اليمنيين`
+      );
       
       return true;
     }
@@ -101,12 +132,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: "مرحباً بك في منصة الطلبة اليمنيين",
       });
       
+      // Send email notification for account creation
+      sendEmailNotification(
+        newUser.email,
+        "مرحباً بك في منصة الطلبة اليمنيين",
+        `مرحباً ${newUser.full_name_ar},\n\nشكراً لإنشاء حساب في منصة الطلبة اليمنيين. نحن سعداء بانضمامك إلينا.\n\nمع تحيات فريق منصة الطلبة اليمنيين`
+      );
+      
       return true;
     }
     return false;
   };
 
   const logout = () => {
+    // Send email notification for logout if user exists
+    if (user) {
+      sendEmailNotification(
+        user.email,
+        "تسجيل خروج - منصة الطلبة اليمنيين",
+        `مرحباً ${user.full_name_ar},\n\nتم تسجيل الخروج من حسابك في منصة الطلبة اليمنيين.\n\nمع تحيات فريق منصة الطلبة اليمنيين`
+      );
+    }
+    
     setUser(null);
     localStorage.removeItem('user');
     toast({

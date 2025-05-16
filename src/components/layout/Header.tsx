@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
   Home, 
@@ -9,16 +9,21 @@ import {
   StarIcon,
   ExternalLink,
   LogIn,
-  UserPlus
+  UserPlus,
+  LogOut
 } from 'lucide-react';
 import LoginForm from '@/components/auth/LoginForm';
 import SignupForm from '@/components/auth/SignupForm';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/context/AuthContext';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const Header = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const { toast } = useToast();
+  const { isAuthenticated, user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const openLogin = () => {
     setIsSignupOpen(false);
@@ -29,6 +34,19 @@ const Header = () => {
     setIsLoginOpen(false);
     setIsSignupOpen(true);
   };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  // Open login modal if not authenticated and trying to access protected routes
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('requiresAuth') === 'true' && !isAuthenticated) {
+      openLogin();
+    }
+  }, [isAuthenticated]);
 
   return (
     <header className="bg-gradient-to-r from-yemen-black to-gray-900 text-white shadow-lg">
@@ -72,21 +90,44 @@ const Header = () => {
             </div>
             
             <div className="flex space-x-2">
-              <Button 
-                variant="outline" 
-                className="text-white border-yemen-red hover:bg-yemen-red flex items-center gap-2"
-                onClick={openLogin}
-              >
-                <LogIn size={18} />
-                تسجيل الدخول
-              </Button>
-              <Button 
-                className="bg-yemen-red hover:bg-red-700 text-white flex items-center gap-2"
-                onClick={openSignup}
-              >
-                <UserPlus size={18} />
-                إنشاء حساب
-              </Button>
+              {isAuthenticated ? (
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <Avatar className="h-8 w-8 border border-yemen-blue">
+                      <AvatarFallback className="bg-yemen-blue text-white">
+                        {user?.full_name_ar?.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="hidden md:inline text-sm">{user?.full_name_ar}</span>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="text-white border-yemen-red hover:bg-yemen-red flex items-center gap-2"
+                    onClick={handleLogout}
+                  >
+                    <LogOut size={18} />
+                    <span className="hidden md:inline">تسجيل الخروج</span>
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <Button 
+                    variant="outline" 
+                    className="text-white border-yemen-red hover:bg-yemen-red flex items-center gap-2"
+                    onClick={openLogin}
+                  >
+                    <LogIn size={18} />
+                    <span className="hidden md:inline">تسجيل الدخول</span>
+                  </Button>
+                  <Button 
+                    className="bg-yemen-red hover:bg-red-700 text-white flex items-center gap-2"
+                    onClick={openSignup}
+                  >
+                    <UserPlus size={18} />
+                    <span className="hidden md:inline">إنشاء حساب</span>
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>

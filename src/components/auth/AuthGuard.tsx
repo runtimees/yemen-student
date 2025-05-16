@@ -1,8 +1,7 @@
 
 import { ReactNode, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
 
 interface AuthGuardProps {
@@ -13,24 +12,20 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
   const { isAuthenticated } = useAuth();
   const [isChecking, setIsChecking] = useState(true);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const location = useLocation();
 
   useEffect(() => {
     // Short timeout to allow the auth state to be checked
     const checkAuth = setTimeout(() => {
       if (!isAuthenticated) {
-        toast({
-          title: "تسجيل الدخول مطلوب",
-          description: "يجب تسجيل الدخول للوصول إلى هذه الصفحة",
-          variant: "destructive",
-        });
-        navigate('/');
+        // Redirect to homepage with query param instead of showing toast
+        navigate(`/?requiresAuth=true`);
       }
       setIsChecking(false);
     }, 100);
 
     return () => clearTimeout(checkAuth);
-  }, [isAuthenticated, navigate, toast]);
+  }, [isAuthenticated, navigate, location]);
 
   if (isChecking) {
     return (
