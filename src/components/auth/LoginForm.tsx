@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/context/AuthContext';
+import Captcha from './Captcha';
 
 interface LoginFormProps {
   open: boolean;
@@ -15,20 +17,55 @@ interface LoginFormProps {
 const LoginForm = ({ open, onOpenChange, onSwitchToSignup }: LoginFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
   const { toast } = useToast();
+  const { login } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: 'تم تسجيل الدخول بنجاح',
-      description: 'مرحبا بك في منصة الطلبة اليمنيين',
-    });
-    onOpenChange(false);
+    
+    if (!isCaptchaVerified) {
+      toast({
+        title: "التحقق مطلوب",
+        description: "يرجى إكمال اختبار التحقق البشري أولاً",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      const success = await login(email, password);
+      
+      if (success) {
+        onOpenChange(false);
+      } else {
+        toast({
+          title: "فشل تسجيل الدخول",
+          description: "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء محاولة تسجيل الدخول",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCaptchaVerify = (verified: boolean) => {
+    setIsCaptchaVerified(verified);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]" dir="rtl">
+      <DialogContent className="sm:max-w-[450px]" dir="rtl">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl">تسجيل الدخول</DialogTitle>
         </DialogHeader>
@@ -42,6 +79,7 @@ const LoginForm = ({ open, onOpenChange, onSwitchToSignup }: LoginFormProps) => 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="focus:ring-yemen-blue focus:border-yemen-blue"
             />
           </div>
           <div className="space-y-2">
@@ -53,11 +91,20 @@ const LoginForm = ({ open, onOpenChange, onSwitchToSignup }: LoginFormProps) => 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              className="focus:ring-yemen-blue focus:border-yemen-blue"
             />
           </div>
-          <Button type="submit" className="w-full bg-yemen-red hover:bg-red-700">
-            دخول
+          
+          <Captcha onVerify={handleCaptchaVerify} />
+          
+          <Button 
+            type="submit" 
+            className="w-full bg-yemen-red hover:bg-red-700"
+            disabled={isLoading}
+          >
+            {isLoading ? "جاري تسجيل الدخول..." : "دخول"}
           </Button>
+          
           <div className="text-center text-sm">
             ليس لديك حساب؟{' '}
             <button

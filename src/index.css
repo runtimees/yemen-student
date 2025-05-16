@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,4 +99,57 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Improved button transitions */
+  button {
+    @apply transition-all duration-300;
+  }
+
+  /* Card hover effects */
+  .hover-card-effect {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  }
+
+  /* Fade in animation */
+  .fade-in {
+    @apply animate-fade-in;
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+}
+
+/* Custom animations for the news carousel */
+.carousel-item-enter {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.carousel-item-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 500ms, transform 500ms;
+}
+
+.carousel-item-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.carousel-item-exit-active {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 500ms, transform 500ms;
 }

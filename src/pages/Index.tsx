@@ -1,26 +1,27 @@
 
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import FeatureCard from '@/components/home/FeatureCard';
 import NewsTicker from '@/components/home/NewsTicker';
-import LoginForm from '@/components/auth/LoginForm';
-import SignupForm from '@/components/auth/SignupForm';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/components/ui/use-toast';
 
 const Index = () => {
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [isSignupOpen, setIsSignupOpen] = useState(false);
+  const { isAuthenticated, user } = useAuth();
+  const { toast } = useToast();
 
-  const openLogin = () => {
-    setIsSignupOpen(false);
-    setIsLoginOpen(true);
-  };
-
-  const openSignup = () => {
-    setIsLoginOpen(false);
-    setIsSignupOpen(true);
-  };
+  useEffect(() => {
+    // Show login notification if the user is already logged in when they load the page
+    if (isAuthenticated && user) {
+      toast({
+        title: `مرحباً ${user.name}`,
+        description: "أنت مسجل الدخول في منصة الطلبة اليمنيين",
+      });
+    }
+  }, [isAuthenticated, user]);
 
   const features = [
     {
@@ -55,36 +56,27 @@ const Index = () => {
       
       <main className="flex-grow">
         {/* Hero Section */}
-        <section className="bg-gradient-to-r from-yemen-black to-gray-900 text-white py-16">
-          <div className="container mx-auto px-4 text-center">
-            <div className="flex justify-center mb-6">
+        <section className="bg-gradient-to-br from-yemen-black via-gray-800 to-gray-900 text-white py-16 px-4">
+          <div className="container mx-auto text-center">
+            <div className="flex justify-center mb-6 fade-in" style={{ animationDelay: '0.2s' }}>
               <img 
                 src="/lovable-uploads/3f42ec74-bc6b-49c4-8f8c-3a5e6895dc36.png" 
                 alt="Yemen Student Platform Logo" 
-                className="h-32 w-auto"
+                className="h-32 w-auto animate-pulse"
               />
             </div>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 fade-in" style={{ animationDelay: '0.4s' }}>
               منصة الطلبة اليمنيين في العراق
             </h1>
-            <p className="text-xl md:text-2xl mb-8">
+            <p className="text-xl md:text-2xl mb-8 text-gray-200 fade-in" style={{ animationDelay: '0.6s' }}>
               نحو تعليم عالٍ أسهل وأكثر تمكينًا
             </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Button 
-                onClick={openLogin}
-                className="bg-yemen-red hover:bg-red-700 text-white px-8 py-2 rounded-md text-lg"
-              >
-                تسجيل الدخول
-              </Button>
-              <Button
-                onClick={openSignup}
-                variant="outline"
-                className="bg-transparent hover:bg-white hover:text-yemen-black text-white border border-white px-8 py-2 rounded-md text-lg"
-              >
-                إنشاء حساب جديد
-              </Button>
-            </div>
+            
+            {!isAuthenticated && (
+              <div className="hidden">
+                {/* These buttons are now in the header */}
+              </div>
+            )}
           </div>
         </section>
 
@@ -92,51 +84,74 @@ const Index = () => {
         <NewsTicker />
 
         {/* Features Section */}
-        <section className="py-12 bg-gray-50">
+        <section className="py-12 bg-gradient-to-b from-gray-50 to-white">
           <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12 text-yemen-black">خدمات المنصة</h2>
+            <h2 className="text-3xl font-bold text-center mb-12 text-yemen-black fade-in">خدمات المنصة</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {features.map((feature, index) => (
-                <FeatureCard
-                  key={index}
-                  title={feature.title}
-                  description={feature.description}
-                  icon={feature.icon}
-                  link={feature.link}
-                />
+                <div 
+                  key={index} 
+                  className="fade-in hover-card-effect" 
+                  style={{ animationDelay: `${0.2 + index * 0.1}s` }}
+                >
+                  <FeatureCard
+                    title={feature.title}
+                    description={feature.description}
+                    icon={feature.icon}
+                    link={feature.link}
+                  />
+                </div>
               ))}
             </div>
           </div>
         </section>
 
         {/* About Section */}
-        <section className="py-12 bg-white">
+        <section className="py-12 bg-gradient-to-br from-white to-gray-50">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
+            <div className="max-w-3xl mx-auto text-center fade-in">
               <h2 className="text-3xl font-bold mb-6 text-yemen-black">عن المنصة</h2>
-              <p className="text-lg text-gray-700 mb-8">
+              <p className="text-lg text-gray-700 mb-8 leading-relaxed">
                 منصة الطلبة اليمنيين في العراق هي منصة متكاملة تهدف إلى تسهيل وتحسين تجربة الطلاب اليمنيين الدارسين في العراق،
                 من خلال توفير خدمات إلكترونية متنوعة تشمل توثيق الشهادات وتجديد جوازات السفر وتسهيل إجراءات الحصول على تأشيرات الدخول،
                 بالإضافة إلى متابعة حالة الطلبات المقدمة بشكل إلكتروني.
               </p>
+              <div className="flex justify-center">
+                <Button 
+                  className="bg-yemen-blue hover:bg-blue-700 text-white px-8 py-3 rounded-lg text-lg shadow-lg hover:shadow-xl transition-all"
+                  asChild
+                >
+                  <Link to="/services">
+                    استكشف خدماتنا
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Statistics Section */}
+        <section className="py-12 bg-yemen-blue text-white">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+              <div className="p-6 rounded-lg bg-white/10 backdrop-blur-sm fade-in" style={{ animationDelay: '0.2s' }}>
+                <div className="text-4xl font-bold mb-2">5000+</div>
+                <div className="text-lg">طالب مستفيد</div>
+              </div>
+              <div className="p-6 rounded-lg bg-white/10 backdrop-blur-sm fade-in" style={{ animationDelay: '0.4s' }}>
+                <div className="text-4xl font-bold mb-2">20+</div>
+                <div className="text-lg">جامعة عراقية</div>
+              </div>
+              <div className="p-6 rounded-lg bg-white/10 backdrop-blur-sm fade-in" style={{ animationDelay: '0.6s' }}>
+                <div className="text-4xl font-bold mb-2">15+</div>
+                <div className="text-lg">خدمة متنوعة</div>
+              </div>
             </div>
           </div>
         </section>
       </main>
 
       <Footer />
-
-      {/* Auth Modals */}
-      <LoginForm
-        open={isLoginOpen}
-        onOpenChange={setIsLoginOpen}
-        onSwitchToSignup={openSignup}
-      />
-      <SignupForm
-        open={isSignupOpen}
-        onOpenChange={setIsSignupOpen}
-        onSwitchToLogin={openLogin}
-      />
     </div>
   );
 };
