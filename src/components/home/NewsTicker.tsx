@@ -9,12 +9,11 @@ import {
 } from '@/components/ui/carousel';
 import { mockDatabase } from '@/services/mockDatabase';
 import { NewsItem } from '@/types/database';
-import useEmblaCarousel from 'embla-carousel-react';
 
 const NewsTicker = () => {
   const [news, setNews] = useState<NewsItem[]>([]);
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
   const autoplayTimer = useRef<number | null>(null);
+  const [api, setApi] = useState<any>(null);
 
   useEffect(() => {
     // Fetch news from the mock database
@@ -23,31 +22,35 @@ const NewsTicker = () => {
   }, []);
 
   useEffect(() => {
-    if (emblaApi) {
-      // Start autoplay - scroll every 15 seconds
-      const autoplay = () => {
-        if (!emblaApi) return;
-        
-        if (autoplayTimer.current) {
-          clearTimeout(autoplayTimer.current);
-        }
-        
-        autoplayTimer.current = window.setTimeout(() => {
-          emblaApi.scrollNext();
-          autoplay();
-        }, 15000); // 15 seconds
-      };
+    if (!api) return;
+
+    // Start autoplay - scroll every 15 seconds
+    const autoplay = () => {
+      if (autoplayTimer.current) {
+        clearTimeout(autoplayTimer.current);
+      }
       
-      autoplay();
-      
-      // Clean up on unmount
-      return () => {
-        if (autoplayTimer.current) {
-          clearTimeout(autoplayTimer.current);
-        }
-      };
+      autoplayTimer.current = window.setTimeout(() => {
+        api.scrollNext();
+        autoplay();
+      }, 15000); // 15 seconds
+    };
+    
+    autoplay();
+    
+    // Clean up on unmount
+    return () => {
+      if (autoplayTimer.current) {
+        clearTimeout(autoplayTimer.current);
+      }
+    };
+  }, [api]);
+
+  const handleDotClick = (index: number) => {
+    if (api) {
+      api.scrollTo(index);
     }
-  }, [emblaApi]);
+  };
 
   return (
     <div className="bg-gradient-to-r from-yemen-blue to-blue-700 text-white py-6 px-4 overflow-hidden shadow-md">
@@ -59,10 +62,10 @@ const NewsTicker = () => {
         </div>
         
         <div className="relative">
-          <div className="overflow-hidden" ref={emblaRef}>
-            <div className="flex">
+          <Carousel setApi={setApi} opts={{ loop: true }}>
+            <CarouselContent>
               {news.map((item) => (
-                <div key={item.id} className="flex-none w-full md:w-1/2 lg:w-1/3 p-2">
+                <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/3">
                   <div className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg p-1 h-full">
                     <div className="flex flex-col h-full">
                       <div className="overflow-hidden rounded-lg flex-shrink-0">
@@ -80,26 +83,26 @@ const NewsTicker = () => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </CarouselItem>
               ))}
-            </div>
-          </div>
+            </CarouselContent>
+            
+            <CarouselPrevious className="absolute top-1/2 left-2 transform -translate-y-1/2" />
+            <CarouselNext className="absolute top-1/2 right-2 transform -translate-y-1/2" />
+          </Carousel>
           
           <div className="flex justify-center mt-4">
             <div className="flex space-x-2">
-              {news.map((item, index) => (
+              {news.map((_, index) => (
                 <button 
                   key={index} 
                   className="h-2 w-2 rounded-full bg-white/50 hover:bg-white cursor-pointer transition-colors"
-                  onClick={() => emblaApi?.scrollTo(index)}
+                  onClick={() => handleDotClick(index)}
                 >
                 </button>
               ))}
             </div>
           </div>
-          
-          <CarouselPrevious className="absolute top-1/2 left-2 transform -translate-y-1/2" />
-          <CarouselNext className="absolute top-1/2 right-2 transform -translate-y-1/2" />
         </div>
       </div>
     </div>
