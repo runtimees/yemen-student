@@ -1,4 +1,3 @@
-
 import { User, Request, ServiceType, UploadedFile, NewsItem } from '@/types/database';
 
 // Mock user data
@@ -92,7 +91,7 @@ export const mockDatabase = {
 
   // Request operations
   getRequestsByUserId: (userId: number) => {
-    return requests.filter(request => request.userId === userId);
+    return requests.filter(request => request.user_id === userId);
   },
   
   getRequestByNumber: (requestNumber: string) => {

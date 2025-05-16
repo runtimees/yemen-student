@@ -17,7 +17,7 @@ const Index = () => {
     // Show login notification if the user is already logged in when they load the page
     if (isAuthenticated && user) {
       toast({
-        title: `مرحباً ${user.name}`,
+        title: `مرحباً ${user.full_name_ar}`, // Using full_name_ar instead of name
         description: "أنت مسجل الدخول في منصة الطلبة اليمنيين",
       });
     }
