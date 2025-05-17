@@ -7,18 +7,33 @@ import {
   CarouselNext, 
   CarouselPrevious 
 } from '@/components/ui/carousel';
-import { mockDatabase } from '@/services/mockDatabase';
+import { databaseService } from '@/services/databaseService';
 import { NewsItem } from '@/types/database';
 
 const NewsTicker = () => {
   const [news, setNews] = useState<NewsItem[]>([]);
   const autoplayTimer = useRef<number | null>(null);
   const [api, setApi] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Fetch news from the mock database
-    const activeNews = mockDatabase.getActiveNews();
-    setNews(activeNews);
+    // Fetch news from the real database
+    const fetchNews = async () => {
+      try {
+        setLoading(true);
+        const activeNews = await databaseService.getActiveNews();
+        setNews(activeNews);
+        setError(null);
+      } catch (err) {
+        console.error("Failed to fetch news:", err);
+        setError("تعذر تحميل الأخبار");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchNews();
   }, []);
 
   useEffect(() => {
@@ -52,6 +67,71 @@ const NewsTicker = () => {
     }
   };
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="bg-gradient-to-r from-yemen-blue to-blue-700 text-white py-6 px-4 overflow-hidden shadow-md">
+        <div className="container mx-auto">
+          <div className="flex items-center mb-3">
+            <div className="bg-yemen-red px-4 py-2 rounded-lg font-bold text-sm md:text-base shadow-md">
+              آخر الأخبار
+            </div>
+          </div>
+          <div className="h-48 flex items-center justify-center">
+            <div className="animate-pulse">جاري تحميل الأخبار...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="bg-gradient-to-r from-yemen-blue to-blue-700 text-white py-6 px-4 overflow-hidden shadow-md">
+        <div className="container mx-auto">
+          <div className="flex items-center mb-3">
+            <div className="bg-yemen-red px-4 py-2 rounded-lg font-bold text-sm md:text-base shadow-md">
+              آخر الأخبار
+            </div>
+          </div>
+          <div className="h-48 flex items-center justify-center">
+            <div className="text-center">
+              <p className="text-lg">{error}</p>
+              <button 
+                className="mt-4 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-md transition-colors"
+                onClick={() => window.location.reload()}
+              >
+                إعادة المحاولة
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // No news items
+  if (news.length === 0) {
+    return (
+      <div className="bg-gradient-to-r from-yemen-blue to-blue-700 text-white py-6 px-4 overflow-hidden shadow-md">
+        <div className="container mx-auto">
+          <div className="flex items-center mb-3">
+            <div className="bg-yemen-red px-4 py-2 rounded-lg font-bold text-sm md:text-base shadow-md">
+              آخر الأخبار
+            </div>
+          </div>
+          <div className="h-48 flex items-center justify-center">
+            <div className="text-center">
+              <p className="text-lg">لا توجد أخبار حالياً</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Normal render with news
   return (
     <div className="bg-gradient-to-r from-yemen-blue to-blue-700 text-white py-6 px-4 overflow-hidden shadow-md">
       <div className="container mx-auto">
