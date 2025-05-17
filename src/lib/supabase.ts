@@ -23,30 +23,34 @@ try {
     console.log('Supabase client initialized successfully');
   } else {
     // Create a mock client that will log errors instead of crashing
-    const mockFunctions = {
+    // @ts-ignore - creating a mock client to prevent crashes
+    supabase = {
       from: () => ({
-        select: () => ({ data: null, error: new Error('No valid Supabase connection') }),
-        insert: () => ({ data: null, error: new Error('No valid Supabase connection') }),
-        update: () => ({ data: null, error: new Error('No valid Supabase connection') }),
-        delete: () => ({ data: null, error: new Error('No valid Supabase connection') }),
+        select: () => ({ data: null, error: { message: 'No valid Supabase connection' } }),
+        insert: () => ({ data: null, error: { message: 'No valid Supabase connection' } }),
+        update: () => ({ data: null, error: { message: 'No valid Supabase connection' } }),
+        delete: () => ({ data: null, error: { message: 'No valid Supabase connection' } }),
       }),
       auth: {
-        signInWithPassword: () => ({ data: null, error: new Error('No valid Supabase connection') }),
-        signUp: () => ({ data: null, error: new Error('No valid Supabase connection') }),
+        signInWithPassword: () => Promise.resolve({ 
+          data: { user: null, session: null },
+          error: { message: 'No valid Supabase connection', code: 'not_connected', status: 0, __isAuthError: true }
+        }),
+        signUp: () => Promise.resolve({ 
+          data: { user: null, session: null },
+          error: { message: 'No valid Supabase connection', code: 'not_connected', status: 0, __isAuthError: true }
+        }),
         signOut: () => Promise.resolve({ error: null }),
         getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+        onAuthStateChange: () => ({ data: { subscription: { id: '0', callback: () => {}, unsubscribe: () => {} } } }),
       },
       storage: {
         from: () => ({
-          upload: () => ({ data: null, error: new Error('No valid Supabase connection') }),
+          upload: () => ({ data: null, error: { message: 'No valid Supabase connection' } }),
           getPublicUrl: () => ({ data: { publicUrl: '' } }),
         }),
       },
     };
-    
-    // @ts-ignore - creating a mock client to prevent crashes
-    supabase = mockFunctions;
     console.error('Created mock Supabase client due to missing or invalid URL. Please connect to Supabase to enable full functionality.');
   }
 } catch (error) {
@@ -54,13 +58,16 @@ try {
   // @ts-ignore - creating an empty mock client as fallback
   supabase = {
     from: () => ({
-      select: () => ({ data: null, error: new Error('Supabase initialization failed') }),
+      select: () => ({ data: null, error: { message: 'Supabase initialization failed' } }),
     }),
     auth: {
-      signInWithPassword: () => Promise.resolve({ data: null, error: new Error('Supabase initialization failed') }),
+      signInWithPassword: () => Promise.resolve({ 
+        data: { user: null, session: null },
+        error: { message: 'Supabase initialization failed', code: 'init_failed', status: 0, __isAuthError: true }
+      }),
       signOut: () => Promise.resolve({ error: null }),
       getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      onAuthStateChange: () => ({ data: { subscription: { id: '0', callback: () => {}, unsubscribe: () => {} } } }),
     },
   };
 }
