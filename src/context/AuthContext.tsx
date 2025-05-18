@@ -4,7 +4,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { toast as sonnerToast } from '@/components/ui/sonner';
 import { User } from '@/types/database';
 import { supabase } from '@/lib/supabase';
-import { databaseService } from '@/services/databaseService';
 
 interface AuthContextType {
   user: User | null;
@@ -20,13 +19,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
 
+  // Function to fetch user profile from our database
+  const fetchUserProfile = async (email: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return null;
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Exception fetching user profile:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     // Check if user is logged in from Supabase session
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session?.user) {
         // Fetch user profile from our users table
-        const userProfile = await databaseService.getUserByEmail(data.session.user.email || '');
+        const userProfile = await fetchUserProfile(data.session.user.email || '');
         if (userProfile) {
           setUser(userProfile);
           toast({
@@ -42,7 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
-        const userProfile = await databaseService.getUserByEmail(session.user.email || '');
+        const userProfile = await fetchUserProfile(session.user.email || '');
         if (userProfile) {
           setUser(userProfile);
         }
@@ -60,7 +80,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const sendEmailNotification = async (email: string, subject: string, message: string) => {
     try {
       // In a real app, you would call a Supabase Edge Function to send emails
-      // For now, we'll just show a toast and log to console
       console.log(`Email notification to be sent to ${email}`);
       console.log(`Subject: ${subject}`);
       console.log(`Message: ${message}`);
@@ -96,7 +115,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       
       // Fetch full user profile from our users table
-      const userProfile = await databaseService.getUserByEmail(data.user.email || '');
+      const userProfile = await fetchUserProfile(data.user.email || '');
       if (userProfile) {
         setUser(userProfile);
         
@@ -135,8 +154,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signup = async (name: string, email: string, password: string): Promise<boolean> => {
     try {
-      // Check if user already exists
-      const existingUser = await databaseService.getUserByEmail(email);
+      console.log("Starting signup process", { name, email });
+      
+      // First, check if the user already exists in Supabase Auth
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .single();
       
       if (existingUser) {
         toast({
@@ -147,33 +172,69 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
       
-      if (name && email && password) {
-        const newUser = await databaseService.createUser({
+      // Create the user in Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name
+          }
+        }
+      });
+      
+      if (error) {
+        console.error("Supabase Auth signup error:", error);
+        toast({
+          title: "فشل إنشاء الحساب",
+          description: error.message || "حدث خطأ أثناء إنشاء الحساب",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      console.log("Auth signup successful, creating user profile");
+      
+      // Create user profile in our users table
+      const { error: insertError } = await supabase
+        .from('users')
+        .insert({
           full_name_ar: name,
           full_name_en: name,
-          email,
-          password_hash: password,
-          role: 'student',
+          email: email,
+          role: 'student'
+        });
+      
+      if (insertError) {
+        console.error("Error creating user profile:", insertError);
+        toast({
+          title: "فشل إنشاء الملف الشخصي",
+          description: "تم إنشاء الحساب ولكن فشل إنشاء الملف الشخصي",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      // Fetch the newly created user profile
+      const userProfile = await fetchUserProfile(email);
+      if (userProfile) {
+        setUser(userProfile);
+        
+        toast({
+          title: "تم إنشاء الحساب بنجاح",
+          description: "مرحباً بك في منصة الطلبة اليمنيين",
         });
         
-        if (newUser) {
-          setUser(newUser);
-          
-          toast({
-            title: "تم إنشاء الحساب بنجاح",
-            description: "مرحباً بك في منصة الطلبة اليمنيين",
-          });
-          
-          // Send email notification for account creation
-          sendEmailNotification(
-            newUser.email,
-            "مرحباً بك في منصة الطلبة اليمنيين",
-            `مرحباً ${newUser.full_name_ar},\n\nشكراً لإنشاء حساب في منصة الطلبة اليمنيين. نحن سعداء بانضمامك إلينا.\n\nمع تحيات فريق منصة الطلبة اليمنيين`
-          );
-          
-          return true;
-        }
+        // Send email notification for account creation
+        sendEmailNotification(
+          email,
+          "مرحباً بك في منصة الطلبة اليمنيين",
+          `مرحباً ${name},\n\nشكراً لإنشاء حساب في منصة الطلبة اليمنيين. نحن سعداء بانضمامك إلينا.\n\nمع تحيات فريق منصة الطلبة اليمنيين`
+        );
+        
+        return true;
       }
+      
       return false;
     } catch (error) {
       console.error("Signup error:", error);
