@@ -1,6 +1,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/types/supabase';
+import { AuthError } from '@supabase/supabase-js';
 
 // These environment variables are automatically populated when using Lovable's Supabase integration
 // Default to empty strings to prevent runtime errors, but the client won't work properly without real values
@@ -22,31 +23,59 @@ try {
     supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
     console.log('Supabase client initialized successfully');
   } else {
-    // Create a mock client that will log errors instead of crashing
+    // Create a proper mock client with functions that return the right types
+    // We use 'any' type here to override TypeScript's default behavior for the mock functions
     // @ts-ignore - creating a mock client to prevent crashes
     supabase = {
-      from: () => ({
-        select: () => ({ data: null, error: { message: 'No valid Supabase connection' } }),
-        insert: () => ({ data: null, error: { message: 'No valid Supabase connection' } }),
-        update: () => ({ data: null, error: { message: 'No valid Supabase connection' } }),
-        delete: () => ({ data: null, error: { message: 'No valid Supabase connection' } }),
-      }),
+      from: (table: string) => {
+        const filterBuilder = {
+          eq: () => filterBuilder,
+          neq: () => filterBuilder,
+          gt: () => filterBuilder,
+          gte: () => filterBuilder,
+          lt: () => filterBuilder,
+          lte: () => filterBuilder,
+          like: () => filterBuilder,
+          ilike: () => filterBuilder,
+          in: () => filterBuilder,
+          is: () => filterBuilder,
+          // Add other required methods
+          select: () => filterBuilder,
+          order: () => filterBuilder,
+          limit: () => filterBuilder,
+          single: () => Promise.resolve({ data: null, error: { message: 'No valid Supabase connection' } }),
+          then: () => Promise.resolve({ data: null, error: { message: 'No valid Supabase connection' } })
+        };
+        
+        return {
+          select: () => filterBuilder,
+          insert: () => Promise.resolve({ data: null, error: { name: 'Error', message: 'No valid Supabase connection' } }),
+          update: () => Promise.resolve({ data: null, error: { name: 'Error', message: 'No valid Supabase connection' } }),
+          delete: () => Promise.resolve({ data: null, error: { name: 'Error', message: 'No valid Supabase connection' } }),
+        };
+      },
       auth: {
-        signInWithPassword: () => Promise.resolve({ 
-          data: { user: null, session: null },
-          error: { message: 'No valid Supabase connection', code: 'not_connected', status: 0, __isAuthError: true }
-        }),
-        signUp: () => Promise.resolve({ 
-          data: { user: null, session: null },
-          error: { message: 'No valid Supabase connection', code: 'not_connected', status: 0, __isAuthError: true }
-        }),
+        signInWithPassword: () => {
+          const authError = new AuthError('No valid Supabase connection', 'not_connected');
+          return Promise.resolve({ 
+            data: { user: null, session: null }, 
+            error: authError
+          });
+        },
+        signUp: () => {
+          const authError = new AuthError('No valid Supabase connection', 'not_connected');
+          return Promise.resolve({ 
+            data: { user: null, session: null }, 
+            error: authError
+          });
+        },
         signOut: () => Promise.resolve({ error: null }),
         getSession: () => Promise.resolve({ data: { session: null }, error: null }),
         onAuthStateChange: () => ({ data: { subscription: { id: '0', callback: () => {}, unsubscribe: () => {} } } }),
       },
       storage: {
         from: () => ({
-          upload: () => ({ data: null, error: { message: 'No valid Supabase connection' } }),
+          upload: () => Promise.resolve({ data: null, error: { name: 'StorageError', message: 'No valid Supabase connection' } }),
           getPublicUrl: () => ({ data: { publicUrl: '' } }),
         }),
       },
@@ -57,14 +86,38 @@ try {
   console.error('Failed to initialize Supabase client:', error);
   // @ts-ignore - creating an empty mock client as fallback
   supabase = {
-    from: () => ({
-      select: () => ({ data: null, error: { message: 'Supabase initialization failed' } }),
-    }),
+    from: (table: string) => {
+      const filterBuilder = {
+        eq: () => filterBuilder,
+        neq: () => filterBuilder,
+        gt: () => filterBuilder,
+        gte: () => filterBuilder,
+        lt: () => filterBuilder,
+        lte: () => filterBuilder,
+        like: () => filterBuilder,
+        ilike: () => filterBuilder,
+        is: () => filterBuilder,
+        in: () => filterBuilder,
+        // Add other required methods
+        select: () => filterBuilder,
+        order: () => filterBuilder,
+        limit: () => filterBuilder,
+        single: () => Promise.resolve({ data: null, error: { message: 'Supabase initialization failed' } }),
+        then: () => Promise.resolve({ data: null, error: { message: 'Supabase initialization failed' } })
+      };
+      
+      return {
+        select: () => filterBuilder,
+      };
+    },
     auth: {
-      signInWithPassword: () => Promise.resolve({ 
-        data: { user: null, session: null },
-        error: { message: 'Supabase initialization failed', code: 'init_failed', status: 0, __isAuthError: true }
-      }),
+      signInWithPassword: () => {
+        const authError = new AuthError('Supabase initialization failed', 'init_failed');
+        return Promise.resolve({ 
+          data: { user: null, session: null }, 
+          error: authError
+        });
+      },
       signOut: () => Promise.resolve({ error: null }),
       getSession: () => Promise.resolve({ data: { session: null }, error: null }),
       onAuthStateChange: () => ({ data: { subscription: { id: '0', callback: () => {}, unsubscribe: () => {} } } }),
