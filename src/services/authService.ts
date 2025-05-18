@@ -24,6 +24,37 @@ export const fetchUserProfile = async (email: string): Promise<User | null> => {
   }
 };
 
+// Function to create user profile if it doesn't exist
+export const createUserProfileIfNotExists = async (email: string, name: string, role: 'student' | 'admin' = 'student'): Promise<boolean> => {
+  try {
+    // Check if profile already exists
+    const existingProfile = await fetchUserProfile(email);
+    if (existingProfile) {
+      return true; // Profile already exists
+    }
+
+    // Create profile
+    const { error } = await supabase
+      .from('users')
+      .insert({
+        full_name_ar: name,
+        full_name_en: name,
+        email: email,
+        role: role
+      });
+    
+    if (error) {
+      console.error('Error creating user profile:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Exception creating user profile:', error);
+    return false;
+  }
+};
+
 // Function to send an email notification
 export const sendEmailNotification = async (email: string, subject: string, message: string) => {
   try {
@@ -66,13 +97,21 @@ export const loginUser = async (email: string, password: string): Promise<{
     }
     
     // Fetch full user profile from our users table
-    const userProfile = await fetchUserProfile(data.user.email || '');
+    let userProfile = await fetchUserProfile(data.user.email || '');
+    
+    // If profile doesn't exist in users table but auth was successful, create it
     if (!userProfile) {
-      return { 
-        success: false, 
-        userProfile: null, 
-        error: "تم تسجيل الدخول ولكن لم يتم العثور على الملف الشخصي" 
-      };
+      const fullName = data.user?.user_metadata?.full_name || '';
+      await createUserProfileIfNotExists(data.user.email || '', fullName);
+      userProfile = await fetchUserProfile(data.user.email || '');
+      
+      if (!userProfile) {
+        return { 
+          success: false, 
+          userProfile: null, 
+          error: "تم تسجيل الدخول ولكن لم يتم العثور على الملف الشخصي" 
+        };
+      }
     }
     
     // Send email notification for login
@@ -101,14 +140,19 @@ export const signupUser = async (name: string, email: string, password: string):
   try {
     console.log("Starting signup process", { name, email });
     
-    // First, check if the user already exists in database
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .single();
+    // First, check if the user already exists in Supabase Auth
+    const { data: { user: existingAuthUser } } = await supabase.auth.getUser();
+    if (existingAuthUser?.email === email) {
+      return { 
+        success: false, 
+        userProfile: null, 
+        error: "هذا البريد الإلكتروني مسجل مسبقاً" 
+      };
+    }
     
-    if (existingUser) {
+    // Check if the user already exists in database
+    const existingProfile = await fetchUserProfile(email);
+    if (existingProfile) {
       return { 
         success: false, 
         userProfile: null, 
@@ -139,23 +183,7 @@ export const signupUser = async (name: string, email: string, password: string):
     console.log("Auth signup successful, creating user profile");
     
     // Create user profile in our users table
-    const { error: insertError } = await supabase
-      .from('users')
-      .insert({
-        full_name_ar: name,
-        full_name_en: name,
-        email: email,
-        role: 'student'
-      });
-    
-    if (insertError) {
-      console.error("Error creating user profile:", insertError);
-      return { 
-        success: false, 
-        userProfile: null, 
-        error: "تم إنشاء الحساب ولكن فشل إنشاء الملف الشخصي" 
-      };
-    }
+    await createUserProfileIfNotExists(email, name);
     
     // Fetch the newly created user profile
     const userProfile = await fetchUserProfile(email);

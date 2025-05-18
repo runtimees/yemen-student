@@ -18,11 +18,13 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
     // Short timeout to allow the auth state to be checked
     const checkAuth = setTimeout(() => {
       if (!isAuthenticated) {
-        // Redirect to homepage with query param instead of showing toast
-        navigate(`/?requiresAuth=true`);
+        // Save the current location the user was trying to access
+        const returnUrl = encodeURIComponent(location.pathname + location.search);
+        // Redirect to homepage with query param
+        navigate(`/?requiresAuth=true&returnTo=${returnUrl}`);
       }
       setIsChecking(false);
-    }, 100);
+    }, 200); // Increased timeout for better auth state detection
 
     return () => clearTimeout(checkAuth);
   }, [isAuthenticated, navigate, location]);

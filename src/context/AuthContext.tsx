@@ -26,11 +26,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is logged in from Supabase session
+    // Set up auth state listener FIRST to avoid missing auth events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event);
+      
+      if (event === 'SIGNED_IN' && session?.user) {
+        // Don't call supabase functions directly in the callback to avoid deadlocks
+        // Use setTimeout to defer the call to the next event loop
+        setTimeout(async () => {
+          const userProfile = await fetchUserProfile(session.user.email || '');
+          if (userProfile) {
+            setUser(userProfile);
+            toast({
+              title: "تم تسجيل الدخول",
+              description: `مرحباً بك ${userProfile.full_name_ar} في منصة الطلبة اليمنيين`,
+            });
+          }
+        }, 0);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+      }
+    });
+    
+    // THEN check for existing session
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session?.user) {
-        // Fetch user profile from our users table
         const userProfile = await fetchUserProfile(data.session.user.email || '');
         if (userProfile) {
           setUser(userProfile);
@@ -44,22 +65,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     checkSession();
     
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        const userProfile = await fetchUserProfile(session.user.email || '');
-        if (userProfile) {
-          setUser(userProfile);
-        }
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-      }
-    });
-    
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [toast]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     const result = await loginUser(email, password);
