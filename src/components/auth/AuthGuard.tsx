@@ -15,16 +15,21 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
   const location = useLocation();
 
   useEffect(() => {
+    console.log('AuthGuard checking authentication status:', isAuthenticated);
+    
     // Short timeout to allow the auth state to be checked
     const checkAuth = setTimeout(() => {
       if (!isAuthenticated) {
+        console.log('User not authenticated, redirecting to homepage');
         // Save the current location the user was trying to access
         const returnUrl = encodeURIComponent(location.pathname + location.search);
         // Redirect to homepage with query param
         navigate(`/?requiresAuth=true&returnTo=${returnUrl}`);
+      } else {
+        console.log('User is authenticated, allowing access');
       }
       setIsChecking(false);
-    }, 200); // Increased timeout for better auth state detection
+    }, 500); // Increased timeout for better auth state detection
 
     return () => clearTimeout(checkAuth);
   }, [isAuthenticated, navigate, location]);

@@ -26,6 +26,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   useEffect(() => {
+    console.log("Setting up auth state listener");
+    
     // Set up auth state listener FIRST to avoid missing auth events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event);
@@ -34,16 +36,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Don't call supabase functions directly in the callback to avoid deadlocks
         // Use setTimeout to defer the call to the next event loop
         setTimeout(async () => {
-          const userProfile = await fetchUserProfile(session.user.email || '');
+          const userEmail = session.user.email || '';
+          console.log('User signed in, fetching profile for:', userEmail);
+          
+          const userProfile = await fetchUserProfile(userEmail);
           if (userProfile) {
+            console.log('User profile found and set');
             setUser(userProfile);
             toast({
               title: "تم تسجيل الدخول",
               description: `مرحباً بك ${userProfile.full_name_ar} في منصة الطلبة اليمنيين`,
             });
+          } else {
+            console.error('User authenticated but no profile found');
+            // Create profile if not exists
+            const userName = session.user.user_metadata.full_name || '';
+            const profileCreated = await createUserProfileIfNotExists(userEmail, userName);
+            
+            if (profileCreated) {
+              const newProfile = await fetchUserProfile(userEmail);
+              if (newProfile) {
+                setUser(newProfile);
+                console.log('Created and set new user profile');
+              }
+            }
           }
         }, 0);
       } else if (event === 'SIGNED_OUT') {
+        console.log('User signed out, clearing user state');
         setUser(null);
       }
     });
@@ -51,14 +71,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // THEN check for existing session
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
+      console.log('Checking for existing session:', data.session ? 'Found' : 'None');
+      
       if (data.session?.user) {
-        const userProfile = await fetchUserProfile(data.session.user.email || '');
+        const userEmail = data.session.user.email || '';
+        console.log('Session found, fetching profile for:', userEmail);
+        
+        const userProfile = await fetchUserProfile(userEmail);
         if (userProfile) {
+          console.log('User profile found and set from existing session');
           setUser(userProfile);
           toast({
             title: "مرحباً بعودتك!",
             description: "تم تسجيل دخولك تلقائياً",
           });
+        } else {
+          console.error('Session exists but no profile found');
+          // Create profile if not exists
+          const userName = data.session.user.user_metadata.full_name || '';
+          const profileCreated = await createUserProfileIfNotExists(userEmail, userName);
+          
+          if (profileCreated) {
+            const newProfile = await fetchUserProfile(userEmail);
+            if (newProfile) {
+              setUser(newProfile);
+              console.log('Created and set new user profile from session');
+            }
+          }
         }
       }
     };
@@ -71,9 +110,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [toast]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
+    console.log('Login requested for:', email);
     const result = await loginUser(email, password);
     
     if (result.success && result.userProfile) {
+      console.log('Login successful, setting user state');
       setUser(result.userProfile);
       
       toast({
@@ -83,6 +124,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       return true;
     } else {
+      console.error('Login failed:', result.error);
       toast({
         title: "فشل تسجيل الدخول",
         description: result.error || "حدث خطأ غير معروف",
@@ -93,9 +135,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signup = async (name: string, email: string, password: string): Promise<boolean> => {
+    console.log('Signup requested for:', email);
     const result = await signupUser(name, email, password);
     
     if (result.success && result.userProfile) {
+      console.log('Signup successful, setting user state');
       setUser(result.userProfile);
       
       toast({
@@ -105,6 +149,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       return true;
     } else {
+      console.error('Signup failed:', result.error);
       toast({
         title: "فشل إنشاء الحساب",
         description: result.error || "حدث خطأ غير معروف",
@@ -115,6 +160,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
+    console.log('Logout requested');
     // Send email notification for logout if user exists
     if (user) {
       sendEmailNotification(
@@ -127,12 +173,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const result = await logoutUser();
     
     if (result.success) {
+      console.log('Logout successful, clearing user state');
       setUser(null);
       toast({
         title: "تم تسجيل الخروج",
         description: "نتمنى رؤيتك مجددا قريباً",
       });
     } else {
+      console.error('Logout failed:', result.error);
       toast({
         title: "خطأ",
         description: result.error || "حدث خطأ أثناء محاولة تسجيل الخروج",

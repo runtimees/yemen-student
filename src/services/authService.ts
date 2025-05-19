@@ -6,6 +6,8 @@ import { toast as sonnerToast } from '@/components/ui/sonner';
 // Function to fetch user profile from database
 export const fetchUserProfile = async (email: string): Promise<User | null> => {
   try {
+    console.log('Fetching user profile for email:', email);
+    
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -17,6 +19,7 @@ export const fetchUserProfile = async (email: string): Promise<User | null> => {
       return null;
     }
     
+    console.log('User profile fetched successfully:', data);
     return data;
   } catch (error) {
     console.error('Exception fetching user profile:', error);
@@ -27,11 +30,16 @@ export const fetchUserProfile = async (email: string): Promise<User | null> => {
 // Function to create user profile if it doesn't exist
 export const createUserProfileIfNotExists = async (email: string, name: string, role: 'student' | 'admin' = 'student'): Promise<boolean> => {
   try {
+    console.log('Creating user profile if not exists for email:', email);
+    
     // Check if profile already exists
     const existingProfile = await fetchUserProfile(email);
     if (existingProfile) {
+      console.log('User profile already exists, skipping creation');
       return true; // Profile already exists
     }
+
+    console.log('No existing profile found, creating new profile with:', { email, name, role });
 
     // Create profile
     const { error } = await supabase
@@ -48,6 +56,7 @@ export const createUserProfileIfNotExists = async (email: string, name: string, 
       return false;
     }
     
+    console.log('User profile created successfully');
     return true;
   } catch (error) {
     console.error('Exception creating user profile:', error);
@@ -83,12 +92,15 @@ export const loginUser = async (email: string, password: string): Promise<{
   error?: string;
 }> => {
   try {
+    console.log('Attempting login for email:', email);
+    
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
     
     if (error || !data.user) {
+      console.error('Login error:', error);
       return { 
         success: false, 
         userProfile: null, 
@@ -96,16 +108,23 @@ export const loginUser = async (email: string, password: string): Promise<{
       };
     }
     
+    console.log('Login successful, fetching user profile');
+    
     // Fetch full user profile from our users table
     let userProfile = await fetchUserProfile(data.user.email || '');
     
     // If profile doesn't exist in users table but auth was successful, create it
     if (!userProfile) {
+      console.log('User authenticated but profile not found, creating profile');
       const fullName = data.user?.user_metadata?.full_name || '';
-      await createUserProfileIfNotExists(data.user.email || '', fullName);
-      userProfile = await fetchUserProfile(data.user.email || '');
+      const createSuccess = await createUserProfileIfNotExists(data.user.email || '', fullName);
+      
+      if (createSuccess) {
+        userProfile = await fetchUserProfile(data.user.email || '');
+      }
       
       if (!userProfile) {
+        console.error('Failed to create or retrieve user profile after login');
         return { 
           success: false, 
           userProfile: null, 
@@ -113,6 +132,8 @@ export const loginUser = async (email: string, password: string): Promise<{
         };
       }
     }
+    
+    console.log('Login and profile fetching complete');
     
     // Send email notification for login
     sendEmailNotification(
@@ -140,19 +161,10 @@ export const signupUser = async (name: string, email: string, password: string):
   try {
     console.log("Starting signup process", { name, email });
     
-    // First, check if the user already exists in Supabase Auth
-    const { data: { user: existingAuthUser } } = await supabase.auth.getUser();
-    if (existingAuthUser?.email === email) {
-      return { 
-        success: false, 
-        userProfile: null, 
-        error: "هذا البريد الإلكتروني مسجل مسبقاً" 
-      };
-    }
-    
-    // Check if the user already exists in database
+    // First, check if the user already exists in database
     const existingProfile = await fetchUserProfile(email);
     if (existingProfile) {
+      console.error('User profile already exists in database');
       return { 
         success: false, 
         userProfile: null, 
@@ -171,29 +183,41 @@ export const signupUser = async (name: string, email: string, password: string):
       }
     });
     
-    if (error) {
+    if (error || !data.user) {
       console.error("Supabase Auth signup error:", error);
       return { 
         success: false, 
         userProfile: null, 
-        error: error.message || "حدث خطأ أثناء إنشاء الحساب" 
+        error: error?.message || "حدث خطأ أثناء إنشاء الحساب" 
       };
     }
     
     console.log("Auth signup successful, creating user profile");
     
     // Create user profile in our users table
-    await createUserProfileIfNotExists(email, name);
+    const profileCreated = await createUserProfileIfNotExists(email, name);
+    
+    if (!profileCreated) {
+      console.error("Failed to create user profile after auth signup");
+      return { 
+        success: false, 
+        userProfile: null, 
+        error: "فشل في إنشاء الملف الشخصي بعد التسجيل" 
+      };
+    }
     
     // Fetch the newly created user profile
     const userProfile = await fetchUserProfile(email);
     if (!userProfile) {
+      console.error("Created profile but failed to retrieve it");
       return { 
         success: false, 
         userProfile: null, 
         error: "فشل في استرجاع ملف المستخدم بعد التسجيل" 
       };
     }
+    
+    console.log("Signup and profile creation successful");
     
     // Send email notification for account creation
     sendEmailNotification(
@@ -215,7 +239,9 @@ export const signupUser = async (name: string, email: string, password: string):
 
 export const logoutUser = async (): Promise<{ success: boolean; error?: string }> => {
   try {
+    console.log("Logging out user");
     await supabase.auth.signOut();
+    console.log("Logout successful");
     return { success: true };
   } catch (error) {
     console.error("Logout error:", error);
