@@ -1,7 +1,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { User } from '@/types/database';
-import { toast as sonnerToast } from '@/components/ui/sonner';
+import { toast as sonnerToast } from 'sonner';
 
 // Function to fetch user profile from database
 export const fetchUserProfile = async (email: string): Promise<User | null> => {
@@ -194,22 +194,14 @@ export const signupUser = async (name: string, email: string, password: string):
     
     console.log("Auth signup successful, creating user profile");
     
-    // Create user profile in our users table
-    const profileCreated = await createUserProfileIfNotExists(email, name);
-    
-    if (!profileCreated) {
-      console.error("Failed to create user profile after auth signup");
-      return { 
-        success: false, 
-        userProfile: null, 
-        error: "فشل في إنشاء الملف الشخصي بعد التسجيل" 
-      };
-    }
+    // The trigger we set up in the database will handle creating the user profile
+    // We just need to wait a moment and then fetch the profile
+    await new Promise(resolve => setTimeout(resolve, 1000));
     
     // Fetch the newly created user profile
     const userProfile = await fetchUserProfile(email);
     if (!userProfile) {
-      console.error("Created profile but failed to retrieve it");
+      console.error("Created auth user but failed to retrieve profile");
       return { 
         success: false, 
         userProfile: null, 
