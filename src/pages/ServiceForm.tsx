@@ -88,7 +88,7 @@ const ServiceForm = () => {
       
       // Save request to database using databaseService
       const requestData = {
-        user_id: parseInt(user.id),
+        user_id: user.id, // Fix: convert to string by removing parseInt() which was causing the error
         service_type: serviceType as any,
         status: 'submitted' as any,
         request_number: generatedRequestNumber,
@@ -155,7 +155,7 @@ const ServiceForm = () => {
           toast({
             title: "تم تقديم الطلب بنجاح",
             description: "لكن حدث خطأ في تحميل الملف، يمكنك تحميله لاحقاً",
-            variant: "warning"
+            variant: "default" // Fix: changed from "warning" to "default"
           });
         }
       }
