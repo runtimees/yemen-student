@@ -16,8 +16,8 @@ createStorageBucketIfNotExists().then((success) => {
   console.log('Storage bucket initialization result:', success ? 'Success' : 'Failed');
   
   if (!success) {
-    console.warn('Storage bucket could not be created automatically. Files may not upload correctly.');
-    console.warn('This may require manual setup in the Supabase dashboard.');
+    console.warn('Storage bucket could not be created automatically. This is normal if you created it manually in Supabase.');
+    console.warn('Check that your bucket is named "files" and is set to public access in Supabase dashboard.');
   }
 });
 

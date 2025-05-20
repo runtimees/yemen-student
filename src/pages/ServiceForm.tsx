@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { databaseService } from '@/services/databaseService';
+import { createStorageBucketIfNotExists } from '@/utils/createStorageBucket';
 
 const ServiceForm = () => {
   const { serviceType } = useParams();
@@ -108,8 +108,12 @@ const ServiceForm = () => {
       
       // Upload file if provided
       if (formData.file && savedRequest) {
-        // First, ensure the storage bucket exists
-        await checkOrCreateStorageBucket();
+        // First, ensure the storage bucket exists or is usable
+        const bucketReady = await createStorageBucketIfNotExists();
+        
+        if (!bucketReady) {
+          console.warn('Storage bucket could not be created or accessed. Will attempt file upload anyway.');
+        }
         
         try {
           // Try direct upload to Supabase Storage
@@ -124,7 +128,17 @@ const ServiceForm = () => {
           
           if (uploadError) {
             console.error('Error uploading file to storage:', uploadError);
-            throw uploadError;
+            
+            // Show a toast but continue with the form submission
+            toast({
+              title: "تم تقديم الطلب بنجاح",
+              description: "لكن حدث خطأ في تحميل الملف، يمكنك تحميله لاحقاً. تحقق من وجود مجلد 'files' في Supabase.",
+              variant: "default" // Fix: changed from "warning" to "default"
+            });
+            
+            // Still show success modal without file
+            setSuccessModalOpen(true);
+            return;
           }
           
           console.log('File uploaded successfully:', uploadData);
@@ -175,45 +189,6 @@ const ServiceForm = () => {
       });
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  // Helper function to check or create the storage bucket
-  const checkOrCreateStorageBucket = async () => {
-    try {
-      // Check if the bucket already exists
-      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
-      
-      if (listError) {
-        console.error('Error checking storage buckets:', listError);
-        return;
-      }
-      
-      // Check if our files bucket exists
-      const filesBucketExists = buckets?.some(bucket => bucket.name === 'files');
-      
-      if (filesBucketExists) {
-        console.log('Files storage bucket exists, proceeding with upload');
-        return;
-      }
-      
-      console.log('Files bucket does not exist, attempting to create it');
-      
-      // Create the bucket if it doesn't exist
-      const { error: createError } = await supabase.storage.createBucket('files', {
-        public: true,
-        fileSizeLimit: 10485760, // 10MB
-      });
-      
-      if (createError) {
-        console.error('Error creating files storage bucket:', createError);
-        throw new Error('Could not create storage bucket for file uploads');
-      }
-      
-      console.log('Created files storage bucket successfully');
-    } catch (error) {
-      console.error('Storage bucket error:', error);
-      throw error;
     }
   };
 
