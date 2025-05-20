@@ -9,6 +9,109 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      files: {
+        Row: {
+          file_path: string
+          file_type: string
+          id: string
+          request_id: string
+          uploaded_at: string
+        }
+        Insert: {
+          file_path: string
+          file_type: string
+          id?: string
+          request_id: string
+          uploaded_at?: string
+        }
+        Update: {
+          file_path?: string
+          file_type?: string
+          id?: string
+          request_id?: string
+          uploaded_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "files_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      news: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          is_active: boolean
+          title: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          title: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          title?: string
+        }
+        Relationships: []
+      }
+      requests: {
+        Row: {
+          additional_notes: string | null
+          created_at: string
+          id: string
+          major: string | null
+          request_number: string
+          service_type: string
+          status: string
+          submission_date: string
+          university_name: string | null
+          user_id: string
+        }
+        Insert: {
+          additional_notes?: string | null
+          created_at?: string
+          id?: string
+          major?: string | null
+          request_number: string
+          service_type: string
+          status?: string
+          submission_date: string
+          university_name?: string | null
+          user_id: string
+        }
+        Update: {
+          additional_notes?: string | null
+          created_at?: string
+          id?: string
+          major?: string | null
+          request_number?: string
+          service_type?: string
+          status?: string
+          submission_date?: string
+          university_name?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           created_at: string

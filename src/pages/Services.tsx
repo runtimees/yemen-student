@@ -1,17 +1,16 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import LoginForm from '@/components/auth/LoginForm';
 import SignupForm from '@/components/auth/SignupForm';
+import { useAuth } from '@/context/AuthContext';
 
 const Services = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSignupOpen, setIsSignupOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   const openLogin = () => {
     setIsSignupOpen(false);
@@ -56,10 +55,15 @@ const Services = () => {
     },
   ];
 
+  const handleServiceClick = (serviceId: string) => {
+    if (!isAuthenticated) {
+      openLogin();
+      return;
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen" dir="rtl">
-      <Header />
-      
       <main className="flex-grow py-8">
         <div className="container mx-auto px-4">
           <div className="mb-8 text-center">
@@ -82,8 +86,11 @@ const Services = () => {
                 </CardHeader>
                 <CardContent className="text-center">
                   <p className="text-gray-600 mb-4">{service.description}</p>
-                  <Link to={`/service-form/${service.id}`}>
-                    <Button className="bg-yemen-blue hover:bg-blue-700 w-full">
+                  <Link to={`/service/${service.id}`}>
+                    <Button 
+                      className="bg-yemen-blue hover:bg-blue-700 w-full"
+                      onClick={() => handleServiceClick(service.id)}
+                    >
                       تقديم الطلب
                     </Button>
                   </Link>
@@ -105,8 +112,6 @@ const Services = () => {
           </div>
         </div>
       </main>
-
-      <Footer />
 
       {/* Auth Modals */}
       <LoginForm

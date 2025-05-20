@@ -1,48 +1,39 @@
 
 import { useState } from 'react';
-import { useParams, Navigate } from 'react-router-dom';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
+import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import LoginForm from '@/components/auth/LoginForm';
-import SignupForm from '@/components/auth/SignupForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 const ServiceForm = () => {
-  const { serviceId } = useParams();
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [isSignupOpen, setIsSignupOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // Simulate logged in state for now
-  const [formData, setFormData] = useState({
-    fullNameArabic: '',
-    fullNameEnglish: '',
-    universityName: '',
-    specialization: '',
-    requestNumber: '',
-    file: null,
-  });
-  const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const { serviceType } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [requestNumber, setRequestNumber] = useState('');
+  
+  const [formData, setFormData] = useState({
+    fullNameArabic: user?.full_name_ar || '',
+    fullNameEnglish: user?.full_name_en || '',
+    universityName: '',
+    major: '',
+    additionalNotes: '',
+    file: null as File | null,
+  });
 
-  const openLogin = () => {
-    setIsSignupOpen(false);
-    setIsLoginOpen(true);
-  };
-
-  const openSignup = () => {
-    setIsLoginOpen(false);
-    setIsSignupOpen(true);
-  };
-
-  if (!serviceId) {
+  if (!serviceType) {
     return <Navigate to="/services" />;
   }
 
   const getServiceTitle = () => {
-    switch (serviceId) {
+    switch (serviceType) {
       case 'certificate-auth':
         return 'تصديق الشهادات';
       case 'certificate-doc':
@@ -58,7 +49,7 @@ const ServiceForm = () => {
     }
   };
 
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
@@ -66,30 +57,110 @@ const ServiceForm = () => {
     });
   };
 
-  const handleFileChange = (e: any) => {
-    setFormData({
-      ...formData,
-      file: e.target.files[0],
-    });
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFormData({
+        ...formData,
+        file: e.target.files[0],
+      });
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isLoggedIn) {
-      openLogin();
+    
+    if (!user) {
+      toast({
+        title: "يجب تسجيل الدخول",
+        description: "يرجى تسجيل الدخول أولاً لتقديم طلب الخدمة",
+        variant: "destructive"
+      });
       return;
     }
-
-    // Show success modal/message
-    setSuccessModalOpen(true);
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Generate unique request number
+      const generatedRequestNumber = `REQ-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+      setRequestNumber(generatedRequestNumber);
+      
+      // Save request to database
+      const { data: requestData, error: requestError } = await supabase
+        .from('requests')
+        .insert({
+          user_id: user.id,
+          service_type: serviceType,
+          status: 'submitted',
+          request_number: generatedRequestNumber,
+          submission_date: new Date().toISOString(),
+          university_name: formData.universityName,
+          major: formData.major,
+          additional_notes: formData.additionalNotes
+        })
+        .select()
+        .single();
+      
+      if (requestError) {
+        throw new Error(requestError.message);
+      }
+      
+      // Upload file if provided
+      if (formData.file && requestData) {
+        const fileExt = formData.file.name.split('.').pop();
+        const fileName = `${user.id}/${generatedRequestNumber}/${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('files')
+          .upload(fileName, formData.file);
+        
+        if (uploadError) {
+          throw new Error(uploadError.message);
+        }
+        
+        // Get file URL
+        const { data: urlData } = supabase.storage
+          .from('files')
+          .getPublicUrl(fileName);
+        
+        // Save file reference to database
+        const { error: fileError } = await supabase
+          .from('files')
+          .insert({
+            request_id: requestData.id,
+            file_type: serviceType,
+            file_path: urlData.publicUrl
+          });
+        
+        if (fileError) {
+          console.error('Error saving file reference:', fileError);
+        }
+      }
+      
+      setSuccessModalOpen(true);
+      toast({
+        title: "تم تقديم الطلب بنجاح",
+        description: `رقم الطلب: ${generatedRequestNumber}`,
+      });
+      
+    } catch (error) {
+      console.error('Error submitting request:', error);
+      toast({
+        title: "فشل تقديم الطلب",
+        description: error instanceof Error ? error.message : "حدث خطأ غير متوقع",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderFormFields = () => {
-    if (serviceId === 'visa-request') {
+    if (serviceType === 'visa-request') {
       return (
         <>
           <div className="space-y-2">
-            <Label htmlFor="fullNameArabic">الاسم الأول</Label>
+            <Label htmlFor="fullNameArabic">الاسم الكامل بالعربية</Label>
             <Input
               id="fullNameArabic"
               name="fullNameArabic"
@@ -99,21 +170,11 @@ const ServiceForm = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="fullNameEnglish">الاسم الثاني</Label>
+            <Label htmlFor="fullNameEnglish">الاسم الكامل بالإنجليزية</Label>
             <Input
               id="fullNameEnglish"
               name="fullNameEnglish"
               value={formData.fullNameEnglish}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="requestNumber">رقم الطلب</Label>
-            <Input
-              id="requestNumber"
-              name="requestNumber"
-              value={formData.requestNumber}
               onChange={handleChange}
               required
             />
@@ -129,13 +190,23 @@ const ServiceForm = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="specialization">التخصص</Label>
+            <Label htmlFor="major">التخصص</Label>
             <Input
-              id="specialization"
-              name="specialization"
-              value={formData.specialization}
+              id="major"
+              name="major"
+              value={formData.major}
               onChange={handleChange}
               required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="additionalNotes">ملاحظات إضافية</Label>
+            <Textarea
+              id="additionalNotes"
+              name="additionalNotes"
+              value={formData.additionalNotes}
+              onChange={handleChange}
+              rows={3}
             />
           </div>
           <div className="space-y-2">
@@ -170,8 +241,37 @@ const ServiceForm = () => {
           />
         </div>
         <div className="space-y-2">
+          <Label htmlFor="universityName">اسم الجامعة</Label>
+          <Input
+            id="universityName"
+            name="universityName"
+            value={formData.universityName}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="major">التخصص</Label>
+          <Input
+            id="major"
+            name="major"
+            value={formData.major}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="additionalNotes">ملاحظات إضافية</Label>
+          <Textarea
+            id="additionalNotes"
+            name="additionalNotes"
+            value={formData.additionalNotes}
+            onChange={handleChange}
+            rows={3}
+          />
+        </div>
+        <div className="space-y-2">
           <Label htmlFor="file">
-            {serviceId === 'passport-renewal'
+            {serviceType === 'passport-renewal'
               ? 'تحميل صورة جواز السفر'
               : 'تحميل صورة الشهادة'}
           </Label>
@@ -182,24 +282,24 @@ const ServiceForm = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen" dir="rtl">
-      <Header />
-      
+    <div className="flex flex-col min-h-screen" dir="rtl">      
       <main className="flex-grow py-8">
         <div className="container mx-auto px-4">
           <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
             <h1 className="text-2xl font-bold mb-6 text-center">{getServiceTitle()}</h1>
             <form onSubmit={handleSubmit} className="space-y-6">
               {renderFormFields()}
-              <Button type="submit" className="w-full bg-yemen-red hover:bg-red-700">
-                تقديم الطلب
+              <Button 
+                type="submit" 
+                className="w-full bg-yemen-red hover:bg-red-700"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'جاري التقديم...' : 'تقديم الطلب'}
               </Button>
             </form>
           </div>
         </div>
       </main>
-
-      <Footer />
 
       {/* Success Modal */}
       <Dialog open={successModalOpen} onOpenChange={setSuccessModalOpen}>
@@ -216,27 +316,31 @@ const ServiceForm = () => {
               </div>
             </div>
             <p className="mb-4">تم استلام طلبك وسيتم معالجته في أقرب وقت ممكن.</p>
-            <Button
-              onClick={() => setSuccessModalOpen(false)}
-              className="bg-yemen-blue hover:bg-blue-700"
-            >
-              العودة للخدمات
-            </Button>
+            <p className="mb-4 font-bold">رقم الطلب: {requestNumber}</p>
+            <p className="mb-4">يمكنك تتبع حالة طلبك من خلال صفحة "تتبع طلباتك".</p>
+            <div className="flex justify-center gap-4">
+              <Button
+                onClick={() => {
+                  setSuccessModalOpen(false);
+                  navigate('/track');
+                }}
+                className="bg-yemen-blue hover:bg-blue-700"
+              >
+                تتبع طلباتك
+              </Button>
+              <Button
+                onClick={() => {
+                  setSuccessModalOpen(false);
+                  navigate('/services');
+                }}
+                variant="outline"
+              >
+                العودة للخدمات
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Auth Modals */}
-      <LoginForm
-        open={isLoginOpen}
-        onOpenChange={setIsLoginOpen}
-        onSwitchToSignup={openSignup}
-      />
-      <SignupForm
-        open={isSignupOpen}
-        onOpenChange={setIsSignupOpen}
-        onSwitchToLogin={openLogin}
-      />
     </div>
   );
 };
