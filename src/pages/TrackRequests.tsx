@@ -1,7 +1,5 @@
 
 import { useState } from 'react';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -42,8 +40,6 @@ const TrackRequests = () => {
 
   return (
     <div className="flex flex-col min-h-screen" dir="rtl">
-      <Header />
-      
       <main className="flex-grow py-12 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto">
@@ -90,8 +86,6 @@ const TrackRequests = () => {
           </div>
         </div>
       </main>
-
-      <Footer />
 
       {/* Result Modal */}
       <Dialog open={resultModalOpen} onOpenChange={setResultModalOpen}>

@@ -27,6 +27,13 @@ export const createStorageBucketIfNotExists = async () => {
     
     if (createError) {
       console.error('Error creating files storage bucket:', createError);
+      
+      // Check if the error is related to permissions and handle it
+      if (createError.message.includes('new row violates row-level security policy')) {
+        console.warn('Permission issue with bucket creation. This typically requires admin action in Supabase.');
+        return false;
+      }
+      
       return false;
     }
     

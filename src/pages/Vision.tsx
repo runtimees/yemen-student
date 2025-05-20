@@ -1,12 +1,9 @@
 
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
+import React from 'react';
 
 const Vision = () => {
   return (
     <div className="flex flex-col min-h-screen" dir="rtl">
-      <Header />
-      
       <main className="flex-grow py-12">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto">
@@ -47,8 +44,6 @@ const Vision = () => {
           </div>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 };

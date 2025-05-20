@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { databaseService } from '@/services/databaseService';
 
 const ServiceForm = () => {
   const { serviceType } = useParams();
@@ -85,55 +86,77 @@ const ServiceForm = () => {
       const generatedRequestNumber = `REQ-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
       setRequestNumber(generatedRequestNumber);
       
-      // Save request to database
-      const { data: requestData, error: requestError } = await supabase
-        .from('requests')
-        .insert({
-          user_id: user.id,
-          service_type: serviceType,
-          status: 'submitted',
-          request_number: generatedRequestNumber,
-          submission_date: new Date().toISOString(),
-          university_name: formData.universityName,
-          major: formData.major,
-          additional_notes: formData.additionalNotes
-        })
-        .select()
-        .single();
+      // Save request to database using databaseService
+      const requestData = {
+        user_id: parseInt(user.id),
+        service_type: serviceType as any,
+        status: 'submitted' as any,
+        request_number: generatedRequestNumber,
+        submission_date: new Date().toISOString(),
+        university_name: formData.universityName,
+        major: formData.major,
+        additional_notes: formData.additionalNotes
+      };
       
-      if (requestError) {
-        throw new Error(requestError.message);
+      const savedRequest = await databaseService.createRequest(requestData);
+      
+      if (!savedRequest) {
+        throw new Error("Failed to save request data to database");
       }
       
+      console.log('Request saved successfully:', savedRequest);
+      
       // Upload file if provided
-      if (formData.file && requestData) {
-        const fileExt = formData.file.name.split('.').pop();
-        const fileName = `${user.id}/${generatedRequestNumber}/${Date.now()}.${fileExt}`;
+      if (formData.file && savedRequest) {
+        // First, ensure the storage bucket exists
+        await checkOrCreateStorageBucket();
         
-        const { error: uploadError } = await supabase.storage
-          .from('files')
-          .upload(fileName, formData.file);
-        
-        if (uploadError) {
-          throw new Error(uploadError.message);
-        }
-        
-        // Get file URL
-        const { data: urlData } = supabase.storage
-          .from('files')
-          .getPublicUrl(fileName);
-        
-        // Save file reference to database
-        const { error: fileError } = await supabase
-          .from('files')
-          .insert({
-            request_id: requestData.id,
-            file_type: serviceType,
+        try {
+          // Try direct upload to Supabase Storage
+          const fileExt = formData.file.name.split('.').pop();
+          const fileName = `${user.id}/${generatedRequestNumber}/${Date.now()}.${fileExt}`;
+          
+          console.log('Attempting file upload to:', fileName);
+          
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('files')
+            .upload(fileName, formData.file);
+          
+          if (uploadError) {
+            console.error('Error uploading file to storage:', uploadError);
+            throw uploadError;
+          }
+          
+          console.log('File uploaded successfully:', uploadData);
+          
+          // Get file URL
+          const { data: urlData } = supabase.storage
+            .from('files')
+            .getPublicUrl(fileName);
+          
+          const fileData = {
+            request_id: savedRequest.id,
+            file_type: serviceType as any,
             file_path: urlData.publicUrl
+          };
+          
+          // Save file reference to database
+          const savedFile = await databaseService.uploadFile(fileData, formData.file);
+          
+          if (!savedFile) {
+            console.warn('Failed to save file reference to database, but file was uploaded');
+            // Continue anyway since the request was saved
+          } else {
+            console.log('File reference saved to database:', savedFile);
+          }
+        } catch (fileError) {
+          console.error('File upload error:', fileError);
+          // Still show success since the request was saved
+          toast({
+            title: "تم تقديم الطلب بنجاح",
+            description: "لكن حدث خطأ في تحميل الملف، يمكنك تحميله لاحقاً",
+            variant: "warning"
           });
-        
-        if (fileError) {
-          console.error('Error saving file reference:', fileError);
         }
       }
       
@@ -152,6 +175,45 @@ const ServiceForm = () => {
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Helper function to check or create the storage bucket
+  const checkOrCreateStorageBucket = async () => {
+    try {
+      // Check if the bucket already exists
+      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      
+      if (listError) {
+        console.error('Error checking storage buckets:', listError);
+        return;
+      }
+      
+      // Check if our files bucket exists
+      const filesBucketExists = buckets?.some(bucket => bucket.name === 'files');
+      
+      if (filesBucketExists) {
+        console.log('Files storage bucket exists, proceeding with upload');
+        return;
+      }
+      
+      console.log('Files bucket does not exist, attempting to create it');
+      
+      // Create the bucket if it doesn't exist
+      const { error: createError } = await supabase.storage.createBucket('files', {
+        public: true,
+        fileSizeLimit: 10485760, // 10MB
+      });
+      
+      if (createError) {
+        console.error('Error creating files storage bucket:', createError);
+        throw new Error('Could not create storage bucket for file uploads');
+      }
+      
+      console.log('Created files storage bucket successfully');
+    } catch (error) {
+      console.error('Storage bucket error:', error);
+      throw error;
     }
   };
 
@@ -282,7 +344,7 @@ const ServiceForm = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen" dir="rtl">      
+    <div className="flex flex-col min-h-screen">      
       <main className="flex-grow py-8">
         <div className="container mx-auto px-4">
           <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">

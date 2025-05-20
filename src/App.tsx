@@ -15,7 +15,7 @@ import AuthGuard from '@/components/auth/AuthGuard';
 
 function App() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen" dir="rtl">
       <Header />
       <main className="flex-grow">
         <Routes>
