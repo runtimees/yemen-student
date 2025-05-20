@@ -7,6 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import LoginForm from '@/components/auth/LoginForm';
 import SignupForm from '@/components/auth/SignupForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 
 const TrackRequests = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -16,6 +19,19 @@ const TrackRequests = () => {
   const [submissionDate, setSubmissionDate] = useState('');
   const [showResults, setShowResults] = useState(false);
   const [resultModalOpen, setResultModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [requestData, setRequestData] = useState<{
+    request_number: string;
+    status: string;
+    service_type: string;
+    admin_notes: string | null;
+    submission_date: string;
+  } | null>(null);
+  const [statusTimeline, setStatusTimeline] = useState<{
+    status: string;
+    date: string;
+    complete: boolean;
+  }[]>([]);
 
   const openLogin = () => {
     setIsSignupOpen(false);
@@ -27,15 +43,110 @@ const TrackRequests = () => {
     setIsSignupOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const fetchRequestData = async () => {
+    if (!requestNumber || !submissionDate) {
+      toast.error('يرجى تعبئة جميع الحقول المطلوبة');
+      return false;
+    }
+
+    setIsLoading(true);
+
+    try {
+      // Query the database for the request
+      const { data, error } = await supabase
+        .from('requests')
+        .select('*')
+        .eq('request_number', requestNumber)
+        .eq('submission_date', submissionDate)
+        .single();
+
+      if (error) {
+        console.error('Error fetching request:', error);
+        toast.error('لم يتم العثور على طلب بالبيانات المدخلة');
+        setIsLoading(false);
+        return false;
+      }
+
+      if (!data) {
+        toast.error('لم يتم العثور على طلب بالبيانات المدخلة');
+        setIsLoading(false);
+        return false;
+      }
+
+      // Store the request data
+      setRequestData({
+        request_number: data.request_number,
+        status: data.status,
+        service_type: data.service_type,
+        admin_notes: data.admin_notes,
+        submission_date: data.submission_date
+      });
+
+      // Generate timeline based on status
+      const statusOrder = ['submitted', 'under_review', 'processing', 'approved', 'rejected'];
+      const currentStatusIndex = statusOrder.indexOf(data.status);
+      
+      const timeline = statusOrder.map((status, index) => {
+        let statusDate = '';
+        if (index === 0) {
+          statusDate = data.submission_date; // Submission date for first status
+        }
+        
+        return {
+          status: translateStatus(status),
+          date: index === 0 ? data.submission_date : (index <= currentStatusIndex ? 'تم التحديث' : '-'),
+          complete: index <= currentStatusIndex
+        };
+      });
+      
+      setStatusTimeline(timeline);
+      
+      setIsLoading(false);
+      return true;
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast.error('حدث خطأ أثناء البحث عن الطلب');
+      setIsLoading(false);
+      return false;
+    }
+  };
+
+  const translateStatus = (status: string): string => {
+    const statusMap: Record<string, string> = {
+      'submitted': 'تم استلام الطلب',
+      'under_review': 'قيد المراجعة',
+      'processing': 'قيد المعالجة',
+      'approved': 'تمت الموافقة',
+      'rejected': 'تم الرفض'
+    };
+    
+    return statusMap[status] || status;
+  };
+
+  const getStatusColor = (status: string): string => {
+    const colorMap: Record<string, string> = {
+      'submitted': 'bg-blue-500',
+      'under_review': 'bg-yellow-500',
+      'processing': 'bg-yellow-500',
+      'approved': 'bg-green-500',
+      'rejected': 'bg-red-500'
+    };
+    
+    return colorMap[status] || 'bg-gray-300';
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isLoggedIn) {
       openLogin();
       return;
     }
     
-    // Show results
-    setResultModalOpen(true);
+    // Fetch request data and show results if successful
+    const success = await fetchRequestData();
+    if (success) {
+      setResultModalOpen(true);
+    }
   };
 
   return (
@@ -71,8 +182,19 @@ const TrackRequests = () => {
                       required
                     />
                   </div>
-                  <Button type="submit" className="w-full bg-yemen-blue hover:bg-blue-700">
-                    استعلام
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-yemen-blue hover:bg-blue-700"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        جاري البحث...
+                      </>
+                    ) : (
+                      'استعلام'
+                    )}
                   </Button>
                 </form>
               </CardContent>
@@ -94,43 +216,38 @@ const TrackRequests = () => {
             <DialogTitle className="text-center text-2xl">نتيجة الاستعلام</DialogTitle>
           </DialogHeader>
           <div className="p-4">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-              <h3 className="font-bold text-xl mb-2">بيانات الطلب</h3>
-              <p><strong>رقم الطلب:</strong> {requestNumber}</p>
-              <p><strong>تاريخ التقديم:</strong> {submissionDate}</p>
-              <p><strong>نوع الخدمة:</strong> تصديق شهادة</p>
-              <p><strong>حالة الطلب:</strong> <span className="text-green-600 font-bold">قيد المعالجة</span></p>
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white">✓</div>
-                <div className="ms-3">
-                  <p className="font-bold">تم استلام الطلب</p>
-                  <p className="text-sm text-gray-600">15-05-2023</p>
+            {requestData && (
+              <>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                  <h3 className="font-bold text-xl mb-2">بيانات الطلب</h3>
+                  <p><strong>رقم الطلب:</strong> {requestData.request_number}</p>
+                  <p><strong>تاريخ التقديم:</strong> {requestData.submission_date}</p>
+                  <p><strong>نوع الخدمة:</strong> {requestData.service_type}</p>
+                  <p><strong>حالة الطلب:</strong> <span className="font-bold text-yemen-blue">{translateStatus(requestData.status)}</span></p>
+                  
+                  {requestData.admin_notes && (
+                    <div className="mt-3 p-2 bg-yellow-50 rounded border border-yellow-200">
+                      <p><strong>ملاحظات:</strong> {requestData.admin_notes}</p>
+                    </div>
+                  )}
                 </div>
-              </div>
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white">✓</div>
-                <div className="ms-3">
-                  <p className="font-bold">قيد المراجعة</p>
-                  <p className="text-sm text-gray-600">17-05-2023</p>
+                
+                <div className="space-y-4">
+                  {statusTimeline.map((item, index) => (
+                    <div className="flex items-center" key={index}>
+                      <div className={`w-8 h-8 ${item.complete ? getStatusColor(statusTimeline[index].status) : 'bg-gray-300'} rounded-full flex items-center justify-center text-white`}>
+                        {item.complete ? '✓' : '?'}
+                      </div>
+                      <div className="ms-3">
+                        <p className="font-bold">{item.status}</p>
+                        <p className="text-sm text-gray-600">{item.date}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-white">⋯</div>
-                <div className="ms-3">
-                  <p className="font-bold">قيد المعالجة</p>
-                  <p className="text-sm text-gray-600">جاري العمل</p>
-                </div>
-              </div>
-              <div className="flex items-center opacity-50">
-                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-white">?</div>
-                <div className="ms-3">
-                  <p className="font-bold">اكتمال الطلب</p>
-                  <p className="text-sm text-gray-600">-</p>
-                </div>
-              </div>
-            </div>
+              </>
+            )}
+            
             <div className="mt-6 text-center">
               <Button onClick={() => setResultModalOpen(false)} className="bg-yemen-blue hover:bg-blue-700">
                 إغلاق

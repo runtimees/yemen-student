@@ -1,7 +1,6 @@
 
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 
 const StudyIraq = () => {
@@ -21,8 +20,6 @@ const StudyIraq = () => {
 
   return (
     <div className="flex flex-col min-h-screen" dir="rtl">
-      <Header />
-      
       <main className="flex-grow py-16">
         <div className="container mx-auto px-4 text-center">
           <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg">
@@ -38,8 +35,6 @@ const StudyIraq = () => {
           </div>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 };

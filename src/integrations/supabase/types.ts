@@ -68,6 +68,7 @@ export type Database = {
       requests: {
         Row: {
           additional_notes: string | null
+          admin_notes: string | null
           created_at: string
           id: string
           major: string | null
@@ -80,6 +81,7 @@ export type Database = {
         }
         Insert: {
           additional_notes?: string | null
+          admin_notes?: string | null
           created_at?: string
           id?: string
           major?: string | null
@@ -92,6 +94,7 @@ export type Database = {
         }
         Update: {
           additional_notes?: string | null
+          admin_notes?: string | null
           created_at?: string
           id?: string
           major?: string | null
