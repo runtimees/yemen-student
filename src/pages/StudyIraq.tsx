@@ -1,7 +1,6 @@
 
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Footer from '@/components/layout/Footer';
 
 const StudyIraq = () => {
   const navigate = useNavigate();

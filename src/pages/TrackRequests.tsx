@@ -52,12 +52,13 @@ const TrackRequests = () => {
     setIsLoading(true);
 
     try {
-      // Query the database for the request
+      // Query the database for the request using date comparison
       const { data, error } = await supabase
         .from('requests')
         .select('*')
         .eq('request_number', requestNumber)
-        .eq('submission_date', submissionDate)
+        .gte('created_at', `${submissionDate}T00:00:00`)
+        .lt('created_at', `${submissionDate}T23:59:59`)
         .single();
 
       if (error) {

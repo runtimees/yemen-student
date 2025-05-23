@@ -7,8 +7,16 @@ import {
   CarouselNext, 
   CarouselPrevious 
 } from '@/components/ui/carousel';
-import { databaseService } from '@/services/databaseService';
-import { NewsItem } from '@/types/database';
+import { supabase } from '@/lib/supabase';
+
+interface NewsItem {
+  id: string;
+  title: string;
+  content: string;
+  image_url: string | null;
+  is_active: boolean;
+  created_at: string;
+}
 
 const NewsTicker = () => {
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -22,8 +30,17 @@ const NewsTicker = () => {
     const fetchNews = async () => {
       try {
         setLoading(true);
-        const activeNews = await databaseService.getActiveNews();
-        setNews(activeNews);
+        const { data, error } = await supabase
+          .from('news')
+          .select('*')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          throw error;
+        }
+        
+        setNews(data || []);
         setError(null);
       } catch (err) {
         console.error("Failed to fetch news:", err);
@@ -150,8 +167,8 @@ const NewsTicker = () => {
                     <div className="flex flex-col h-full">
                       <div className="overflow-hidden rounded-lg flex-shrink-0">
                         <img 
-                          src={`https://picsum.photos/id/${item.id * 50}/200/100`}
-                          alt="News" 
+                          src={item.image_url || `https://picsum.photos/id/${Math.abs(item.id.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % 50}/200/100`}
+                          alt={item.title} 
                           className="w-full h-28 object-cover hover:scale-110 transition-transform"
                         />
                       </div>

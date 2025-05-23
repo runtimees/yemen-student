@@ -41,11 +41,42 @@ export type Database = {
           },
         ]
       }
+      movement_guides: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_url: string
+          id: string
+          is_active: boolean
+          region: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_url: string
+          id?: string
+          is_active?: boolean
+          region: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_url?: string
+          id?: string
+          is_active?: boolean
+          region?: string
+          title?: string
+        }
+        Relationships: []
+      }
       news: {
         Row: {
           content: string
           created_at: string
           id: string
+          image_url: string | null
           is_active: boolean
           title: string
         }
@@ -53,6 +84,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          image_url?: string | null
           is_active?: boolean
           title: string
         }
@@ -60,6 +92,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          image_url?: string | null
           is_active?: boolean
           title?: string
         }

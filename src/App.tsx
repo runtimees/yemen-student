@@ -7,6 +7,7 @@ import Services from '@/pages/Services';
 import TrackRequests from '@/pages/TrackRequests';
 import Vision from '@/pages/Vision';
 import StudyIraq from '@/pages/StudyIraq';
+import MovementGuides from '@/pages/MovementGuides';
 import NotFound from '@/pages/NotFound';
 import ServiceForm from '@/pages/ServiceForm';
 import Header from '@/components/layout/Header';
@@ -24,6 +25,7 @@ function App() {
           <Route path="/track" element={<AuthGuard><TrackRequests /></AuthGuard>} />
           <Route path="/vision" element={<Vision />} />
           <Route path="/study-iraq" element={<StudyIraq />} />
+          <Route path="/movement-guides" element={<MovementGuides />} />
           <Route path="/service/:serviceType" element={<AuthGuard><ServiceForm /></AuthGuard>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
