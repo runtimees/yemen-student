@@ -19,7 +19,7 @@ interface FormData {
 export const useServiceForm = (serviceType: string) => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { userProfile } = useAuth();
+  const { user, userProfile } = useAuth();
 
   const [formData, setFormData] = useState<FormData>({
     fullNameAr: '',
@@ -41,7 +41,7 @@ export const useServiceForm = (serviceType: string) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!userProfile) {
+    if (!user || !userProfile) {
       toast({
         title: "خطأ",
         description: "يجب تسجيل الدخول أولاً",
@@ -50,8 +50,9 @@ export const useServiceForm = (serviceType: string) => {
       return;
     }
 
+    console.log('Authenticated user:', user);
+    console.log('User ID (UUID):', user.id);
     console.log('User profile:', userProfile);
-    console.log('User ID:', userProfile.id);
 
     setIsSubmitting(true);
 
@@ -59,11 +60,11 @@ export const useServiceForm = (serviceType: string) => {
       // Generate request number
       const requestNumber = `REQ-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
       
-      // Create request - use userProfile.id directly as it's already a UUID string
+      // Create request - use user.id (the UUID from Supabase auth)
       const { data: request, error: requestError } = await supabase
         .from('requests')
         .insert({
-          user_id: userProfile.id,
+          user_id: user.id, // Use the UUID from Supabase auth, not userProfile.id
           service_type: serviceType,
           status: 'submitted',
           request_number: requestNumber,
@@ -93,7 +94,7 @@ export const useServiceForm = (serviceType: string) => {
       for (const { file, type } of files) {
         if (file) {
           // Create file path with user ID in folder structure for RLS policy
-          const filePath = `${userProfile.id}/${request.id}/${type}/${file.name}`;
+          const filePath = `${user.id}/${request.id}/${type}/${file.name}`;
           
           console.log('Uploading file:', filePath);
           
