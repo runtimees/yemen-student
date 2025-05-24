@@ -38,6 +38,39 @@ export const useServiceForm = (serviceType: string) => {
     setFormData(prev => ({ ...prev, [field]: file }));
   };
 
+  const createStorageBucket = async () => {
+    try {
+      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      
+      if (listError) {
+        console.error('Error listing buckets:', listError);
+        return false;
+      }
+
+      const filesbucketExists = buckets?.some(bucket => bucket.name === 'files');
+      
+      if (!filesucketExists) {
+        const { data, error: createError } = await supabase.storage.createBucket('files', {
+          public: false,
+          allowedMimeTypes: ['application/pdf'],
+          fileSizeLimit: 2097152 // 2MB in bytes
+        });
+        
+        if (createError) {
+          console.error('Error creating bucket:', createError);
+          return false;
+        }
+        
+        console.log('Bucket created successfully:', data);
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error in createStorageBucket:', error);
+      return false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -56,6 +89,12 @@ export const useServiceForm = (serviceType: string) => {
     setIsSubmitting(true);
 
     try {
+      // Ensure storage bucket exists
+      const bucketReady = await createStorageBucket();
+      if (!bucketReady) {
+        throw new Error('فشل في إعداد مساحة التخزين');
+      }
+
       // Generate request number
       const requestNumber = `REQ-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
       
@@ -77,7 +116,8 @@ export const useServiceForm = (serviceType: string) => {
 
       if (requestError) {
         console.error('Error creating request:', requestError);
-        throw new Error('فشل في إنشاء الطلب');
+        console.error('Request error details:', requestError.message, requestError.code, requestError.details);
+        throw new Error('فشل في إنشاء الطلب: ' + requestError.message);
       }
 
       console.log('Request created successfully:', request);
@@ -93,23 +133,34 @@ export const useServiceForm = (serviceType: string) => {
         if (file) {
           const filePath = `uploads/${request.id}/${type}/${file.name}`;
           
+          console.log('Uploading file:', filePath);
+          
           const { error: uploadError } = await supabase.storage
             .from('files')
             .upload(filePath, file);
 
           if (uploadError) {
             console.error('Upload error:', uploadError);
-            continue; // Continue with other files if one fails
+            console.error('Upload error details:', uploadError.message);
+            // Continue with other files if one fails, but log the error
+            continue;
           }
 
+          console.log('File uploaded successfully:', filePath);
+
           // Save file metadata
-          await supabase
+          const { error: fileMetadataError } = await supabase
             .from('files')
             .insert({
               request_id: request.id,
               file_type: type,
               file_path: filePath,
             });
+
+          if (fileMetadataError) {
+            console.error('File metadata error:', fileMetadataError);
+            // Continue even if metadata fails
+          }
         }
       }
 
@@ -121,9 +172,10 @@ export const useServiceForm = (serviceType: string) => {
       navigate('/');
     } catch (error) {
       console.error('Submit error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'حدث خطأ أثناء إرسال الطلب';
       toast({
         title: "خطأ",
-        description: "حدث خطأ أثناء إرسال الطلب",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
