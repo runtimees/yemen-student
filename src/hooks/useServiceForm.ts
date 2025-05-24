@@ -95,18 +95,31 @@ export const useServiceForm = (serviceType: string) => {
 
       for (const { file, type } of files) {
         if (file) {
+          console.log(`Processing file: ${file.name}, Size: ${file.size} bytes (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+          
           // Create file path with user ID in folder structure for RLS policy
           const filePath = `${user.id}/${request.id}/${type}/${file.name}`;
           
-          console.log('Uploading file:', filePath);
+          console.log('Uploading file to path:', filePath);
           
+          // Try upload with additional options to handle larger files
           const { error: uploadError } = await supabase.storage
             .from('files')
-            .upload(filePath, file);
+            .upload(filePath, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
 
           if (uploadError) {
             console.error('Upload error:', uploadError);
             console.error('Upload error details:', uploadError.message);
+            console.error('Upload error status:', uploadError.statusCode);
+            
+            // Provide more specific error messages
+            if (uploadError.statusCode === '413' || uploadError.message.includes('exceeded the maximum allowed size')) {
+              throw new Error(`الملف كبير جداً. الحد الأقصى المسموح في النظام أقل من المتوقع. حجم الملف: ${(file.size / 1024 / 1024).toFixed(2)} ميجابايت`);
+            }
+            
             throw new Error(`فشل في رفع الملف ${type}: ${uploadError.message}`);
           }
 

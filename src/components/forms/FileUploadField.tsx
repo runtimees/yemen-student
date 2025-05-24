@@ -13,13 +13,22 @@ const FileUploadField = ({ serviceType, onFileChange }: FileUploadFieldProps) =>
   const { toast } = useToast();
 
   const handleFileChange = (file: File | null) => {
-    if (file && !validateFileSize(file)) {
-      toast({
-        title: "خطأ في حجم الملف",
-        description: "حجم الملف يجب أن لا يتجاوز 2 ميجابايت",
-        variant: "destructive",
+    if (file) {
+      console.log('Selected file details:', {
+        name: file.name,
+        size: file.size,
+        sizeMB: (file.size / 1024 / 1024).toFixed(2),
+        type: file.type
       });
-      return;
+
+      if (!validateFileSize(file)) {
+        toast({
+          title: "خطأ في حجم الملف",
+          description: `حجم الملف ${(file.size / 1024 / 1024).toFixed(2)} ميجابايت. الحد الأقصى المسموح: 5 ميجابايت`,
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     if (serviceType === 'passport_renewal') {
@@ -46,7 +55,7 @@ const FileUploadField = ({ serviceType, onFileChange }: FileUploadFieldProps) =>
         className="w-full"
       />
       <p className="text-sm text-gray-500">
-        يجب أن يكون الملف بصيغة PDF (الحد الأقصى: 2MB)
+        يجب أن يكون الملف بصيغة PDF (الحد الأقصى: 5MB)
       </p>
     </div>
   );

@@ -43,6 +43,9 @@ export const getServiceTitle = (serviceType: string) => {
 };
 
 export const validateFileSize = (file: File) => {
-  const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+  const maxSize = 5 * 1024 * 1024; // Increased to 5MB to be safe
+  console.log('File size:', file.size, 'bytes');
+  console.log('Max allowed size:', maxSize, 'bytes');
+  console.log('File size in MB:', (file.size / 1024 / 1024).toFixed(2), 'MB');
   return file.size <= maxSize;
 };
