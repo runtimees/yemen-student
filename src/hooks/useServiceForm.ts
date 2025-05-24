@@ -113,10 +113,9 @@ export const useServiceForm = (serviceType: string) => {
           if (uploadError) {
             console.error('Upload error:', uploadError);
             console.error('Upload error details:', uploadError.message);
-            console.error('Upload error status:', uploadError.statusCode);
             
-            // Provide more specific error messages
-            if (uploadError.statusCode === '413' || uploadError.message.includes('exceeded the maximum allowed size')) {
+            // Provide more specific error messages based on error message content
+            if (uploadError.message.includes('413') || uploadError.message.includes('exceeded the maximum allowed size') || uploadError.message.includes('too large')) {
               throw new Error(`الملف كبير جداً. الحد الأقصى المسموح في النظام أقل من المتوقع. حجم الملف: ${(file.size / 1024 / 1024).toFixed(2)} ميجابايت`);
             }
             
