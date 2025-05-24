@@ -38,45 +38,6 @@ export const useServiceForm = (serviceType: string) => {
     setFormData(prev => ({ ...prev, [field]: file }));
   };
 
-  const createStorageBucket = async () => {
-    try {
-      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
-      
-      if (listError) {
-        console.error('Error listing buckets:', listError);
-        return false;
-      }
-
-      const filesBucketExists = buckets?.some(bucket => bucket.name === 'files');
-      
-      if (!filesBucketExists) {
-        const { data, error: createError } = await supabase.storage.createBucket('files', {
-          public: false,
-          allowedMimeTypes: ['application/pdf'],
-          fileSizeLimit: 2097152 // 2MB in bytes
-        });
-        
-        if (createError) {
-          console.error('Error creating bucket:', createError);
-          // If bucket creation fails due to permissions, try to continue anyway
-          // The bucket might already exist but we don't have permission to see it
-          if (createError.message.includes('new row violates row-level security policy')) {
-            console.log('Bucket creation failed due to permissions, attempting to continue...');
-            return true; // Try to continue anyway
-          }
-          return false;
-        }
-        
-        console.log('Bucket created successfully:', data);
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Error in createStorageBucket:', error);
-      return false;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -95,12 +56,6 @@ export const useServiceForm = (serviceType: string) => {
     setIsSubmitting(true);
 
     try {
-      // Ensure storage bucket exists
-      const bucketReady = await createStorageBucket();
-      if (!bucketReady) {
-        throw new Error('فشل في إعداد مساحة التخزين');
-      }
-
       // Generate request number
       const requestNumber = `REQ-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
       
@@ -108,7 +63,7 @@ export const useServiceForm = (serviceType: string) => {
       const { data: request, error: requestError } = await supabase
         .from('requests')
         .insert({
-          user_id: userProfile.id, // Use directly, no need to convert to string
+          user_id: userProfile.id,
           service_type: serviceType,
           status: 'submitted',
           request_number: requestNumber,
@@ -137,7 +92,8 @@ export const useServiceForm = (serviceType: string) => {
 
       for (const { file, type } of files) {
         if (file) {
-          const filePath = `uploads/${request.id}/${type}/${file.name}`;
+          // Create file path with user ID in folder structure for RLS policy
+          const filePath = `${userProfile.id}/${request.id}/${type}/${file.name}`;
           
           console.log('Uploading file:', filePath);
           
