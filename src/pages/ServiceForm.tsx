@@ -14,6 +14,9 @@ const ServiceForm = () => {
   const [searchParams] = useSearchParams();
   const serviceType = searchParams.get('service') || '';
 
+  console.log('ServiceForm - Current URL params:', searchParams.toString());
+  console.log('ServiceForm - Service type from URL:', serviceType);
+
   const {
     formData,
     setFormData,

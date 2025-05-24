@@ -36,7 +36,10 @@ export const getFileAcceptType = (serviceType: string) => {
 };
 
 export const getServiceTitle = (serviceType: string) => {
-  return serviceNames[serviceType as keyof typeof serviceNames] || 'خدمة غير محددة';
+  console.log('Service type received:', serviceType);
+  const title = serviceNames[serviceType as keyof typeof serviceNames];
+  console.log('Mapped title:', title);
+  return title || 'خدمة غير محددة';
 };
 
 export const validateFileSize = (file: File) => {
