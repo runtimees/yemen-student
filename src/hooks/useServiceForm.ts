@@ -91,6 +91,8 @@ export const useServiceForm = (serviceType: string) => {
         { file: formData.visaFile, type: 'visa_request' },
       ].filter(item => item.file);
 
+      console.log('Files to upload:', files.length);
+
       for (const { file, type } of files) {
         if (file) {
           // Create file path with user ID in folder structure for RLS policy
@@ -105,8 +107,7 @@ export const useServiceForm = (serviceType: string) => {
           if (uploadError) {
             console.error('Upload error:', uploadError);
             console.error('Upload error details:', uploadError.message);
-            // Continue with other files if one fails, but log the error
-            continue;
+            throw new Error(`فشل في رفع الملف ${type}: ${uploadError.message}`);
           }
 
           console.log('File uploaded successfully:', filePath);
@@ -122,8 +123,11 @@ export const useServiceForm = (serviceType: string) => {
 
           if (fileMetadataError) {
             console.error('File metadata error:', fileMetadataError);
-            // Continue even if metadata fails
+            console.error('File metadata error details:', fileMetadataError.message, fileMetadataError.code);
+            throw new Error(`فشل في حفظ بيانات الملف ${type}: ${fileMetadataError.message}`);
           }
+
+          console.log('File metadata saved successfully for:', type);
         }
       }
 
