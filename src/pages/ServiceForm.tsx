@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -176,7 +175,7 @@ const ServiceForm = () => {
   };
 
   const getServiceTitle = (serviceType: string) => {
-    return serviceNames[serviceType as keyof typeof serviceNames] || 'طلب خدمة';
+    return serviceNames[serviceType as keyof typeof serviceNames] || 'خدمة غير محددة';
   };
 
   return (
