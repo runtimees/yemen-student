@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/context/AuthContext';
+import { PhoneInput } from '@/components/ui/phone-input';
 import Captcha from './Captcha';
 
 interface SignupFormProps {
@@ -15,7 +17,10 @@ interface SignupFormProps {
 }
 
 const SignupForm = ({ open, onOpenChange, onSwitchToLogin }: SignupFormProps) => {
-  const [name, setName] = useState('');
+  const [nameAr, setNameAr] = useState('');
+  const [nameEn, setNameEn] = useState('');
+  const [phone, setPhone] = useState('');
+  const [residenceStatus, setResidenceStatus] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -44,11 +49,20 @@ const SignupForm = ({ open, onOpenChange, onSwitchToLogin }: SignupFormProps) =>
       });
       return;
     }
+
+    if (!nameAr || !nameEn || !phone || !residenceStatus) {
+      toast({
+        title: "خطأ",
+        description: "يرجى تعبئة جميع الحقول المطلوبة",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsLoading(true);
     
     try {
-      const success = await signup(name, email, password);
+      const success = await signup(nameAr, email, password);
       
       if (success) {
         onOpenChange(false);
@@ -76,24 +90,61 @@ const SignupForm = ({ open, onOpenChange, onSwitchToLogin }: SignupFormProps) =>
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[450px]" dir="rtl">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
-          <DialogTitle className="text-center text-2xl">إنشاء حساب جديد</DialogTitle>
+          <DialogTitle className="text-center text-xl sm:text-2xl">إنشاء حساب جديد</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           <div className="space-y-2">
-            <Label htmlFor="name">الاسم الكامل</Label>
+            <Label htmlFor="name-ar">الاسم الكامل بالعربية *</Label>
             <Input
-              id="name"
-              placeholder="أدخل اسمك الكامل"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              id="name-ar"
+              placeholder="أدخل اسمك الكامل بالعربية"
+              value={nameAr}
+              onChange={(e) => setNameAr(e.target.value)}
               required
               className="focus:ring-yemen-blue focus:border-yemen-blue"
             />
           </div>
+          
           <div className="space-y-2">
-            <Label htmlFor="signup-email">البريد الإلكتروني</Label>
+            <Label htmlFor="name-en">الاسم الكامل بالإنجليزية *</Label>
+            <Input
+              id="name-en"
+              placeholder="Enter your full name in English"
+              value={nameEn}
+              onChange={(e) => setNameEn(e.target.value)}
+              required
+              className="focus:ring-yemen-blue focus:border-yemen-blue"
+              dir="ltr"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone">رقم الهاتف *</Label>
+            <PhoneInput
+              value={phone}
+              onChange={setPhone}
+              placeholder="رقم الهاتف"
+            />
+          </div>
+
+          <div className="space-y-3">
+            <Label>الحالة السكنية *</Label>
+            <RadioGroup value={residenceStatus} onValueChange={setResidenceStatus} className="space-y-2">
+              <div className="flex items-center space-x-2 space-x-reverse">
+                <RadioGroupItem value="resident_in_iraq" id="resident" />
+                <Label htmlFor="resident" className="cursor-pointer">مقيم في العراق</Label>
+              </div>
+              <div className="flex items-center space-x-2 space-x-reverse">
+                <RadioGroupItem value="applying_to_study" id="applying" />
+                <Label htmlFor="applying" className="cursor-pointer">متقدم للدراسة في العراق</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="signup-email">البريد الإلكتروني *</Label>
             <Input
               id="signup-email"
               type="email"
@@ -104,8 +155,9 @@ const SignupForm = ({ open, onOpenChange, onSwitchToLogin }: SignupFormProps) =>
               className="focus:ring-yemen-blue focus:border-yemen-blue"
             />
           </div>
+          
           <div className="space-y-2">
-            <Label htmlFor="signup-password">كلمة المرور</Label>
+            <Label htmlFor="signup-password">كلمة المرور *</Label>
             <Input
               id="signup-password"
               type="password"
@@ -116,8 +168,9 @@ const SignupForm = ({ open, onOpenChange, onSwitchToLogin }: SignupFormProps) =>
               className="focus:ring-yemen-blue focus:border-yemen-blue"
             />
           </div>
+          
           <div className="space-y-2">
-            <Label htmlFor="confirm-password">تأكيد كلمة المرور</Label>
+            <Label htmlFor="confirm-password">تأكيد كلمة المرور *</Label>
             <Input
               id="confirm-password"
               type="password"
@@ -138,6 +191,7 @@ const SignupForm = ({ open, onOpenChange, onSwitchToLogin }: SignupFormProps) =>
           >
             {isLoading ? "جاري إنشاء الحساب..." : "إنشاء حساب"}
           </Button>
+          
           <div className="text-center text-sm">
             لديك حساب بالفعل؟{' '}
             <button

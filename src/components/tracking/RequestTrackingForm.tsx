@@ -28,49 +28,53 @@ const RequestTrackingForm = ({ onSubmit, isLoading, isLoggedIn, onLoginRequired 
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-center">استعلام عن حالة الطلب</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="requestNumber">رقم الطلب</Label>
-            <Input
-              id="requestNumber"
-              placeholder="أدخل رقم الطلب"
-              value={requestNumber}
-              onChange={(e) => setRequestNumber(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="submissionDate">تاريخ تقديم الطلب</Label>
-            <Input
-              id="submissionDate"
-              type="date"
-              value={submissionDate}
-              onChange={(e) => setSubmissionDate(e.target.value)}
-              required
-            />
-          </div>
-          <Button 
-            type="submit" 
-            className="w-full bg-yemen-blue hover:bg-blue-700"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                جاري البحث...
-              </>
-            ) : (
-              'استعلام'
-            )}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+    <div className="w-full max-w-md mx-auto">
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-center text-lg sm:text-xl">استعلام عن حالة الطلب</CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="requestNumber">رقم الطلب</Label>
+              <Input
+                id="requestNumber"
+                placeholder="أدخل رقم الطلب"
+                value={requestNumber}
+                onChange={(e) => setRequestNumber(e.target.value)}
+                required
+                className="w-full"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="submissionDate">تاريخ تقديم الطلب</Label>
+              <Input
+                id="submissionDate"
+                type="date"
+                value={submissionDate}
+                onChange={(e) => setSubmissionDate(e.target.value)}
+                required
+                className="w-full"
+              />
+            </div>
+            <Button 
+              type="submit" 
+              className="w-full bg-yemen-blue hover:bg-blue-700"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  جاري البحث...
+                </>
+              ) : (
+                'استعلام'
+              )}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

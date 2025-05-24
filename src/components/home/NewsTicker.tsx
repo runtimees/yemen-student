@@ -1,207 +1,129 @@
 
-import { useState, useEffect, useRef } from 'react';
-import { 
-  Carousel, 
-  CarouselContent, 
-  CarouselItem, 
-  CarouselNext, 
-  CarouselPrevious 
-} from '@/components/ui/carousel';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-
-interface NewsItem {
-  id: string;
-  title: string;
-  content: string;
-  image_url: string | null;
-  is_active: boolean;
-  created_at: string;
-}
+import { NewsItem } from '@/types/database';
 
 const NewsTicker = () => {
   const [news, setNews] = useState<NewsItem[]>([]);
-  const autoplayTimer = useRef<number | null>(null);
-  const [api, setApi] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    // Fetch news from the real database
-    const fetchNews = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('news')
-          .select('*')
-          .eq('is_active', true)
-          .order('created_at', { ascending: false });
-        
-        if (error) {
-          throw error;
-        }
-        
-        setNews(data || []);
-        setError(null);
-      } catch (err) {
-        console.error("Failed to fetch news:", err);
-        setError("تعذر تحميل الأخبار");
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     fetchNews();
   }, []);
 
   useEffect(() => {
-    if (!api) return;
+    if (news.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % news.length);
+      }, 4000);
 
-    // Start autoplay - scroll every 15 seconds
-    const autoplay = () => {
-      if (autoplayTimer.current) {
-        clearTimeout(autoplayTimer.current);
-      }
-      
-      autoplayTimer.current = window.setTimeout(() => {
-        api.scrollNext();
-        autoplay();
-      }, 15000); // 15 seconds
-    };
-    
-    autoplay();
-    
-    // Clean up on unmount
-    return () => {
-      if (autoplayTimer.current) {
-        clearTimeout(autoplayTimer.current);
-      }
-    };
-  }, [api]);
+      return () => clearInterval(interval);
+    }
+  }, [news.length]);
 
-  const handleDotClick = (index: number) => {
-    if (api) {
-      api.scrollTo(index);
+  const fetchNews = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('news')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching news:', error);
+        return;
+      }
+
+      if (data) {
+        const newsItems: NewsItem[] = data.map(item => ({
+          id: parseInt(item.id),
+          title: item.title,
+          content: item.content,
+          is_active: item.is_active,
+          created_at: item.created_at
+        }));
+        setNews(newsItems);
+      }
+    } catch (error) {
+      console.error('Error fetching news:', error);
     }
   };
 
-  // Loading state
-  if (loading) {
-    return (
-      <div className="bg-gradient-to-r from-yemen-blue to-blue-700 text-white py-6 px-4 overflow-hidden shadow-md">
-        <div className="container mx-auto">
-          <div className="flex items-center mb-3">
-            <div className="bg-yemen-red px-4 py-2 rounded-lg font-bold text-sm md:text-base shadow-md">
-              آخر الأخبار
-            </div>
-          </div>
-          <div className="h-48 flex items-center justify-center">
-            <div className="animate-pulse">جاري تحميل الأخبار...</div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (!news.length) return null;
 
-  // Error state
-  if (error) {
-    return (
-      <div className="bg-gradient-to-r from-yemen-blue to-blue-700 text-white py-6 px-4 overflow-hidden shadow-md">
-        <div className="container mx-auto">
-          <div className="flex items-center mb-3">
-            <div className="bg-yemen-red px-4 py-2 rounded-lg font-bold text-sm md:text-base shadow-md">
-              آخر الأخبار
-            </div>
-          </div>
-          <div className="h-48 flex items-center justify-center">
-            <div className="text-center">
-              <p className="text-lg">{error}</p>
-              <button 
-                className="mt-4 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-md transition-colors"
-                onClick={() => window.location.reload()}
-              >
-                إعادة المحاولة
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // No news items
-  if (news.length === 0) {
-    return (
-      <div className="bg-gradient-to-r from-yemen-blue to-blue-700 text-white py-6 px-4 overflow-hidden shadow-md">
-        <div className="container mx-auto">
-          <div className="flex items-center mb-3">
-            <div className="bg-yemen-red px-4 py-2 rounded-lg font-bold text-sm md:text-base shadow-md">
-              آخر الأخبار
-            </div>
-          </div>
-          <div className="h-48 flex items-center justify-center">
-            <div className="text-center">
-              <p className="text-lg">لا توجد أخبار حالياً</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Normal render with news
   return (
-    <div className="bg-gradient-to-r from-yemen-blue to-blue-700 text-white py-6 px-4 overflow-hidden shadow-md">
-      <div className="container mx-auto">
-        <div className="flex items-center mb-3">
-          <div className="bg-yemen-red px-4 py-2 rounded-lg font-bold text-sm md:text-base shadow-md">
-            آخر الأخبار
-          </div>
-        </div>
-        
-        <div className="relative">
-          <Carousel setApi={setApi} opts={{ loop: true }}>
-            <CarouselContent>
-              {news.map((item) => (
-                <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/3">
-                  <div className="bg-white/10 backdrop-blur-sm rounded-xl overflow-hidden shadow-lg p-1 h-full">
-                    <div className="flex flex-col h-full">
-                      <div className="overflow-hidden rounded-lg flex-shrink-0">
-                        <img 
-                          src={item.image_url || `https://picsum.photos/id/${Math.abs(item.id.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % 50}/200/100`}
-                          alt={item.title} 
-                          className="w-full h-28 object-cover hover:scale-110 transition-transform"
-                        />
-                      </div>
-                      <div className="p-3 flex-grow">
-                        <h3 className="font-bold mb-2">{item.title}</h3>
-                        <p className="text-white text-sm md:text-base">
-                          {item.content}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
+    <div className="bg-yemen-red text-white py-2 overflow-hidden">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center">
+          <span className="bg-white text-yemen-red px-3 py-1 rounded-md font-bold text-sm flex-shrink-0 ml-4">
+            أخبار
+          </span>
+          <div className="flex-1 overflow-hidden">
+            {/* Desktop: Show scrolling animation */}
+            <div className="hidden md:block">
+              <div 
+                className="whitespace-nowrap animate-marquee"
+                style={{
+                  animation: 'marquee 20s linear infinite'
+                }}
+              >
+                {news.map((item, index) => (
+                  <span key={item.id} className="inline-block mr-12">
+                    {item.title} - {item.content}
+                  </span>
+                ))}
+              </div>
+            </div>
             
-            <CarouselPrevious className="absolute top-1/2 left-2 transform -translate-y-1/2" />
-            <CarouselNext className="absolute top-1/2 right-2 transform -translate-y-1/2" />
-          </Carousel>
-          
-          <div className="flex justify-center mt-4">
-            <div className="flex space-x-2">
-              {news.map((_, index) => (
-                <button 
-                  key={index} 
-                  className="h-2 w-2 rounded-full bg-white/50 hover:bg-white cursor-pointer transition-colors"
-                  onClick={() => handleDotClick(index)}
-                >
-                </button>
-              ))}
+            {/* Mobile: Show one item at a time with fade transition */}
+            <div className="md:hidden">
+              <div className="relative h-6 overflow-hidden">
+                {news.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className={`absolute inset-0 transition-all duration-500 ease-in-out ${
+                      index === currentIndex 
+                        ? 'opacity-100 translate-y-0' 
+                        : index < currentIndex 
+                          ? 'opacity-0 -translate-y-full' 
+                          : 'opacity-0 translate-y-full'
+                    }`}
+                  >
+                    <p className="text-sm line-clamp-1">
+                      {item.title} - {item.content}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Mobile navigation dots */}
+              {news.length > 1 && (
+                <div className="flex justify-center mt-2 space-x-1 space-x-reverse">
+                  {news.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentIndex(index)}
+                      className={`w-2 h-2 rounded-full transition-colors ${
+                        index === currentIndex ? 'bg-white' : 'bg-white/50'
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes marquee {
+          0% { transform: translateX(100%); }
+          100% { transform: translateX(-100%); }
+        }
+        .animate-marquee {
+          animation: marquee 20s linear infinite;
+        }
+      `}</style>
     </div>
   );
 };

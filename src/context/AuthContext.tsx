@@ -1,126 +1,136 @@
 
-import { createContext, useContext, ReactNode } from 'react';
-import { useToast } from '@/components/ui/use-toast';
-import { User } from '@/types/database';
-import { 
-  loginUser,
-  signupUser,
-  logoutUser,
-  sendEmailNotification
-} from '@/services/authService';
-import { useAuthState } from '@/hooks/useAuthState';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
+import { User as UserProfile } from '@/types/database';
+import { loginUser, signupUser, logoutUser } from '@/services/authService';
 
 interface AuthContextType {
   user: User | null;
-  isAuthenticated: boolean;
+  userProfile: UserProfile | null;
+  session: Session | null;
+  loading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  signup: (name: string, email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  signup: (nameAr: string, email: string, password: string, nameEn?: string, phoneNumber?: string, residenceStatus?: string) => Promise<boolean>;
+  logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const { user, setUser } = useAuthState();
-  const { toast } = useToast();
-
-  const login = async (email: string, password: string): Promise<boolean> => {
-    console.log('Login requested for:', email);
-    const result = await loginUser(email, password);
-    
-    if (result.success && result.userProfile) {
-      console.log('Login successful, setting user state');
-      setUser(result.userProfile);
-      
-      toast({
-        title: "تم تسجيل الدخول بنجاح",
-        description: `مرحباً بك ${result.userProfile.full_name_ar} في منصة الطلبة اليمنيين`,
-      });
-      
-      return true;
-    } else {
-      console.error('Login failed:', result.error);
-      toast({
-        title: "فشل تسجيل الدخول",
-        description: result.error || "حدث خطأ غير معروف",
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
-  const signup = async (name: string, email: string, password: string): Promise<boolean> => {
-    console.log('Signup requested for:', email);
-    const result = await signupUser(name, email, password);
-    
-    if (result.success && result.userProfile) {
-      console.log('Signup successful, setting user state');
-      setUser(result.userProfile);
-      
-      toast({
-        title: "تم إنشاء الحساب بنجاح",
-        description: "مرحباً بك في منصة الطلبة اليمنيين",
-      });
-      
-      return true;
-    } else {
-      console.error('Signup failed:', result.error);
-      toast({
-        title: "فشل إنشاء الحساب",
-        description: result.error || "حدث خطأ غير معروف",
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
-  const logout = async () => {
-    console.log('Logout requested');
-    // Send email notification for logout if user exists
-    if (user) {
-      sendEmailNotification(
-        user.email,
-        "تسجيل خروج - منصة الطلبة اليمنيين",
-        `مرحباً ${user.full_name_ar},\n\nتم تسجيل الخروج من حسابك في منصة الطلبة اليمنيين.\n\nمع تحيات فريق منصة الطلبة اليمنيين`
-      );
-    }
-    
-    const result = await logoutUser();
-    
-    if (result.success) {
-      console.log('Logout successful, clearing user state');
-      setUser(null);
-      toast({
-        title: "تم تسجيل الخروج",
-        description: "نتمنى رؤيتك مجددا قريباً",
-      });
-    } else {
-      console.error('Logout failed:', result.error);
-      toast({
-        title: "خطأ",
-        description: result.error || "حدث خطأ أثناء محاولة تسجيل الخروج",
-        variant: "destructive",
-      });
-    }
-  };
-
-  return (
-    <AuthContext.Provider value={{ 
-      user, 
-      isAuthenticated: !!user, 
-      login, 
-      signup, 
-      logout 
-    }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  userProfile: null,
+  session: null,
+  loading: true,
+  login: async () => false,
+  signup: async () => false,
+  logout: async () => {},
+});
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
+};
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          // Fetch user profile when logged in
+          setTimeout(async () => {
+            try {
+              const { data: profile } = await supabase
+                .from('users')
+                .select('*')
+                .eq('email', session.user.email)
+                .single();
+              
+              if (profile) {
+                setUserProfile({
+                  id: parseInt(profile.id),
+                  full_name_ar: profile.full_name_ar || '',
+                  full_name_en: profile.full_name_en || '',
+                  email: profile.email,
+                  password_hash: '',
+                  phone_number: profile.phone_number || undefined,
+                  role: profile.role as 'student' | 'admin',
+                  created_at: profile.created_at
+                });
+              }
+            } catch (error) {
+              console.error('Error fetching user profile:', error);
+            }
+          }, 0);
+        } else {
+          setUserProfile(null);
+        }
+        
+        setLoading(false);
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogin = async (email: string, password: string): Promise<boolean> => {
+    const result = await loginUser(email, password);
+    if (result.success && result.userProfile) {
+      setUserProfile(result.userProfile);
+      return true;
+    }
+    return false;
+  };
+
+  const handleSignup = async (
+    nameAr: string, 
+    email: string, 
+    password: string,
+    nameEn?: string,
+    phoneNumber?: string,
+    residenceStatus?: string
+  ): Promise<boolean> => {
+    const result = await signupUser(nameAr, email, password, nameEn, phoneNumber, residenceStatus);
+    if (result.success && result.userProfile) {
+      setUserProfile(result.userProfile);
+      return true;
+    }
+    return false;
+  };
+
+  const handleLogout = async (): Promise<void> => {
+    await logoutUser();
+    setUser(null);
+    setUserProfile(null);
+    setSession(null);
+  };
+
+  const value = {
+    user,
+    userProfile,
+    session,
+    loading,
+    login: handleLogin,
+    signup: handleSignup,
+    logout: handleLogout,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

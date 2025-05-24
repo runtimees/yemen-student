@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { User } from '@/types/database';
 import { toast as sonnerToast } from 'sonner';
@@ -153,13 +152,20 @@ export const loginUser = async (email: string, password: string): Promise<{
   }
 };
 
-export const signupUser = async (name: string, email: string, password: string): Promise<{
+export const signupUser = async (
+  nameAr: string, 
+  email: string, 
+  password: string,
+  nameEn?: string,
+  phoneNumber?: string,
+  residenceStatus?: string
+): Promise<{
   success: boolean;
   userProfile: User | null;
   error?: string;
 }> => {
   try {
-    console.log("Starting signup process", { name, email });
+    console.log("Starting signup process", { nameAr, nameEn, email, phoneNumber, residenceStatus });
     
     // First, check if the user already exists in database
     const existingProfile = await fetchUserProfile(email);
@@ -172,13 +178,18 @@ export const signupUser = async (name: string, email: string, password: string):
       };
     }
     
-    // Create the user in Supabase Auth
+    // Create the user in Supabase Auth with additional metadata
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
-          full_name: name
+          full_name_ar: nameAr,
+          full_name_en: nameEn || nameAr,
+          full_name: nameAr,
+          name: nameAr,
+          phone_number: phoneNumber || '',
+          residence_status: residenceStatus || ''
         }
       }
     });
@@ -215,7 +226,7 @@ export const signupUser = async (name: string, email: string, password: string):
     sendEmailNotification(
       email,
       "مرحباً بك في منصة الطلبة اليمنيين",
-      `مرحباً ${name},\n\nشكراً لإنشاء حساب في منصة الطلبة اليمنيين. نحن سعداء بانضمامك إلينا.\n\nمع تحيات فريق منصة الطلبة اليمنيين`
+      `مرحباً ${nameAr},\n\nشكراً لإنشاء حساب في منصة الطلبة اليمنيين. نحن سعداء بانضمامك إلينا.\n\nمع تحيات فريق منصة الطلبة اليمنيين`
     );
     
     return { success: true, userProfile };
