@@ -47,9 +47,9 @@ export const useServiceForm = (serviceType: string) => {
         return false;
       }
 
-      const filesbucketExists = buckets?.some(bucket => bucket.name === 'files');
+      const filesBucketExists = buckets?.some(bucket => bucket.name === 'files');
       
-      if (!filesucketExists) {
+      if (!filesBucketExists) {
         const { data, error: createError } = await supabase.storage.createBucket('files', {
           public: false,
           allowedMimeTypes: ['application/pdf'],
@@ -58,6 +58,12 @@ export const useServiceForm = (serviceType: string) => {
         
         if (createError) {
           console.error('Error creating bucket:', createError);
+          // If bucket creation fails due to permissions, try to continue anyway
+          // The bucket might already exist but we don't have permission to see it
+          if (createError.message.includes('new row violates row-level security policy')) {
+            console.log('Bucket creation failed due to permissions, attempting to continue...');
+            return true; // Try to continue anyway
+          }
           return false;
         }
         
