@@ -20,6 +20,8 @@ const ServiceForm = () => {
   const serviceType = searchParams.get('service') || '';
 
   const [formData, setFormData] = useState({
+    fullNameAr: '',
+    fullNameEn: '',
     universityName: '',
     major: '',
     additionalNotes: '',
@@ -156,33 +158,54 @@ const ServiceForm = () => {
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
               <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-                {(serviceType === 'certificate_authentication' || serviceType === 'certificate_documentation') && (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="university">اسم الجامعة *</Label>
-                      <Input
-                        id="university"
-                        placeholder="أدخل اسم الجامعة"
-                        value={formData.universityName}
-                        onChange={(e) => setFormData(prev => ({ ...prev, universityName: e.target.value }))}
-                        required
-                        className="w-full"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="major">التخصص *</Label>
-                      <Input
-                        id="major"
-                        placeholder="أدخل التخصص"
-                        value={formData.major}
-                        onChange={(e) => setFormData(prev => ({ ...prev, major: e.target.value }))}
-                        required
-                        className="w-full"
-                      />
-                    </div>
-                  </>
-                )}
+                <div className="space-y-2">
+                  <Label htmlFor="full-name-ar">الاسم الكامل بالعربية *</Label>
+                  <Input
+                    id="full-name-ar"
+                    placeholder="أدخل الاسم الكامل بالعربية"
+                    value={formData.fullNameAr}
+                    onChange={(e) => setFormData(prev => ({ ...prev, fullNameAr: e.target.value }))}
+                    required
+                    className="w-full"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="full-name-en">الاسم الكامل بالإنجليزية *</Label>
+                  <Input
+                    id="full-name-en"
+                    placeholder="Enter full name in English"
+                    value={formData.fullNameEn}
+                    onChange={(e) => setFormData(prev => ({ ...prev, fullNameEn: e.target.value }))}
+                    required
+                    className="w-full"
+                    dir="ltr"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="university">اسم الجامعة *</Label>
+                  <Input
+                    id="university"
+                    placeholder="أدخل اسم الجامعة"
+                    value={formData.universityName}
+                    onChange={(e) => setFormData(prev => ({ ...prev, universityName: e.target.value }))}
+                    required
+                    className="w-full"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="major">التخصص *</Label>
+                  <Input
+                    id="major"
+                    placeholder="أدخل التخصص"
+                    value={formData.major}
+                    onChange={(e) => setFormData(prev => ({ ...prev, major: e.target.value }))}
+                    required
+                    className="w-full"
+                  />
+                </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="file-upload">{getFileFieldLabel(serviceType)} *</Label>
