@@ -40,7 +40,20 @@ const ServiceForm = () => {
     visa_request: 'طلب فيزا',
   };
 
+  const validateFileSize = (file: File) => {
+    const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+    return file.size <= maxSize;
+  };
+
   const handleFileChange = (field: string, file: File | null) => {
+    if (file && !validateFileSize(file)) {
+      toast({
+        title: "خطأ في حجم الملف",
+        description: "حجم الملف يجب أن لا يتجاوز 2 ميجابايت",
+        variant: "destructive",
+      });
+      return;
+    }
     setFormData(prev => ({ ...prev, [field]: file }));
   };
 
@@ -135,15 +148,35 @@ const ServiceForm = () => {
   const getFileFieldLabel = (serviceType: string) => {
     switch (serviceType) {
       case 'passport_renewal':
-        return 'صورة الجواز';
+        return 'صورة الجواز (PDF)';
       case 'certificate_authentication':
       case 'certificate_documentation':
-        return 'صورة الشهادة';
+      case 'ministry_authentication':
+        return 'صورة الشهادة (PDF)';
       case 'visa_request':
-        return 'المستندات المطلوبة';
+        return 'المستندات المطلوبة (PDF)';
       default:
-        return 'المستندات';
+        return 'المستندات (PDF)';
     }
+  };
+
+  const getFileAcceptType = (serviceType: string) => {
+    switch (serviceType) {
+      case 'passport_renewal':
+        return '.pdf';
+      case 'certificate_authentication':
+      case 'certificate_documentation':
+      case 'ministry_authentication':
+        return '.pdf';
+      case 'visa_request':
+        return '.pdf';
+      default:
+        return '.pdf';
+    }
+  };
+
+  const getServiceTitle = (serviceType: string) => {
+    return serviceNames[serviceType as keyof typeof serviceNames] || 'طلب خدمة';
   };
 
   return (
@@ -153,7 +186,7 @@ const ServiceForm = () => {
           <Card className="shadow-lg">
             <CardHeader className="text-center space-y-2">
               <CardTitle className="text-xl sm:text-2xl text-yemen-blue">
-                طلب خدمة: {serviceNames[serviceType as keyof typeof serviceNames]}
+                {getServiceTitle(serviceType)}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-4 sm:p-6">
@@ -212,12 +245,12 @@ const ServiceForm = () => {
                   <Input
                     id="file-upload"
                     type="file"
-                    accept="image/*,.pdf"
+                    accept={getFileAcceptType(serviceType)}
                     onChange={(e) => {
                       const file = e.target.files?.[0] || null;
                       if (serviceType === 'passport_renewal') {
                         handleFileChange('passportFile', file);
-                      } else if (serviceType === 'certificate_authentication' || serviceType === 'certificate_documentation') {
+                      } else if (serviceType === 'certificate_authentication' || serviceType === 'certificate_documentation' || serviceType === 'ministry_authentication') {
                         handleFileChange('certificateFile', file);
                       } else {
                         handleFileChange('visaFile', file);
@@ -227,7 +260,7 @@ const ServiceForm = () => {
                     className="w-full"
                   />
                   <p className="text-sm text-gray-500">
-                    الملفات المدعومة: JPG, PNG, PDF (الحد الأقصى: 10MB)
+                    يجب أن يكون الملف بصيغة PDF (الحد الأقصى: 2MB)
                   </p>
                 </div>
 
