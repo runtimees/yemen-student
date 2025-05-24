@@ -1,5 +1,5 @@
 
-import { useSearchParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,11 +11,10 @@ import FormActions from '@/components/forms/FormActions';
 import { useServiceForm } from '@/hooks/useServiceForm';
 
 const ServiceForm = () => {
-  const [searchParams] = useSearchParams();
-  const serviceType = searchParams.get('service') || '';
+  const { serviceType } = useParams<{ serviceType: string }>();
+  const actualServiceType = serviceType || '';
 
-  console.log('ServiceForm - Current URL params:', searchParams.toString());
-  console.log('ServiceForm - Service type from URL:', serviceType);
+  console.log('ServiceForm - Service type from URL params:', actualServiceType);
 
   const {
     formData,
@@ -23,14 +22,14 @@ const ServiceForm = () => {
     isSubmitting,
     handleFileChange,
     handleSubmit,
-  } = useServiceForm(serviceType);
+  } = useServiceForm(actualServiceType);
 
   return (
     <AuthGuard>
       <div className="min-h-screen bg-gray-50 py-4 px-4 sm:py-8">
         <div className="container mx-auto max-w-2xl">
           <Card className="shadow-lg">
-            <ServiceFormHeader serviceType={serviceType} />
+            <ServiceFormHeader serviceType={actualServiceType} />
             <CardContent className="p-4 sm:p-6">
               <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                 <PersonalInfoFields 
@@ -39,7 +38,7 @@ const ServiceForm = () => {
                 />
 
                 <FileUploadField
-                  serviceType={serviceType}
+                  serviceType={actualServiceType}
                   onFileChange={handleFileChange}
                 />
 
