@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import FeatureCard from '@/components/home/FeatureCard';
@@ -8,18 +7,18 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 
 const Index = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, userProfile } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
     // Show login notification if the user is already logged in when they load the page
-    if (isAuthenticated && user) {
+    if (isAuthenticated && userProfile) {
       toast({
-        title: `مرحباً ${user.full_name_ar}`, 
+        title: `مرحباً ${userProfile.full_name_ar}`, 
         description: "أنت مسجل الدخول في منصة الطلبة اليمنيين",
       });
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, userProfile]);
 
   const features = [
     {

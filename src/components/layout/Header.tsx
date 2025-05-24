@@ -22,7 +22,7 @@ const Header = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSignupOpen, setIsSignupOpen] = useState(false);
   const { toast } = useToast();
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, userProfile, logout } = useAuth();
   const navigate = useNavigate();
 
   const openLogin = () => {
@@ -95,10 +95,10 @@ const Header = () => {
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8 border border-yemen-blue">
                       <AvatarFallback className="bg-yemen-blue text-white">
-                        {user?.full_name_ar?.charAt(0)}
+                        {userProfile?.full_name_ar?.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="hidden md:inline text-sm">{user?.full_name_ar}</span>
+                    <span className="hidden md:inline text-sm">{userProfile?.full_name_ar}</span>
                   </div>
                   <Button 
                     variant="outline" 

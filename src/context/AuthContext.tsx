@@ -1,15 +1,16 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { User as UserProfile } from '@/types/database';
 import { loginUser, signupUser, logoutUser } from '@/services/authService';
 
 interface AuthContextType {
-  user: User | null;
+  user: SupabaseUser | null;
   userProfile: UserProfile | null;
   session: Session | null;
   loading: boolean;
+  isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   signup: (nameAr: string, email: string, password: string, nameEn?: string, phoneNumber?: string, residenceStatus?: string) => Promise<boolean>;
   logout: () => Promise<void>;
@@ -20,6 +21,7 @@ const AuthContext = createContext<AuthContextType>({
   userProfile: null,
   session: null,
   loading: true,
+  isAuthenticated: false,
   login: async () => false,
   signup: async () => false,
   logout: async () => {},
@@ -34,10 +36,12 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const isAuthenticated = !!user && !!session;
 
   useEffect(() => {
     // Set up auth state listener
@@ -127,6 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     userProfile,
     session,
     loading,
+    isAuthenticated,
     login: handleLogin,
     signup: handleSignup,
     logout: handleLogout,
