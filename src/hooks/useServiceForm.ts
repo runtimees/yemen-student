@@ -50,17 +50,20 @@ export const useServiceForm = (serviceType: string) => {
       return;
     }
 
+    console.log('User profile:', userProfile);
+    console.log('User ID:', userProfile.id);
+
     setIsSubmitting(true);
 
     try {
       // Generate request number
       const requestNumber = `REQ-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
       
-      // Create request
+      // Create request - use userProfile.id directly as it's already a UUID string
       const { data: request, error: requestError } = await supabase
         .from('requests')
         .insert({
-          user_id: userProfile.id.toString(),
+          user_id: userProfile.id, // Use directly, no need to convert to string
           service_type: serviceType,
           status: 'submitted',
           request_number: requestNumber,
@@ -76,6 +79,8 @@ export const useServiceForm = (serviceType: string) => {
         console.error('Error creating request:', requestError);
         throw new Error('فشل في إنشاء الطلب');
       }
+
+      console.log('Request created successfully:', request);
 
       // Handle file uploads if any
       const files = [
