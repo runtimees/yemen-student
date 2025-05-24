@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 import { User } from '@/types/database';
 import { toast as sonnerToast } from 'sonner';
@@ -156,9 +157,9 @@ export const signupUser = async (
   nameAr: string, 
   email: string, 
   password: string,
-  nameEn?: string,
-  phoneNumber?: string,
-  residenceStatus?: string
+  nameEn: string = '',
+  phoneNumber: string = '',
+  residenceStatus: string = ''
 ): Promise<{
   success: boolean;
   userProfile: User | null;
@@ -188,8 +189,8 @@ export const signupUser = async (
           full_name_en: nameEn || nameAr,
           full_name: nameAr,
           name: nameAr,
-          phone_number: phoneNumber || '',
-          residence_status: residenceStatus || ''
+          phone_number: phoneNumber,
+          residence_status: residenceStatus
         }
       }
     });

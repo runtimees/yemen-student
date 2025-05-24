@@ -62,9 +62,13 @@ const SignupForm = ({ open, onOpenChange, onSwitchToLogin }: SignupFormProps) =>
     setIsLoading(true);
     
     try {
-      const success = await signup(nameAr, email, password);
+      const success = await signup(nameAr, email, password, nameEn, phone, residenceStatus);
       
       if (success) {
+        toast({
+          title: "تم إنشاء الحساب بنجاح",
+          description: "مرحباً بك في منصة الطلبة اليمنيين",
+        });
         onOpenChange(false);
       } else {
         toast({
@@ -74,6 +78,7 @@ const SignupForm = ({ open, onOpenChange, onSwitchToLogin }: SignupFormProps) =>
         });
       }
     } catch (error) {
+      console.error('Signup error:', error);
       toast({
         title: "خطأ",
         description: "حدث خطأ أثناء محاولة إنشاء الحساب",
