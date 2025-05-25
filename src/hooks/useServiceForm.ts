@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
-import { FileUploadService } from '@/services/fileUploadService';
 
 interface FormData {
   fullNameAr: string;
@@ -15,7 +14,6 @@ interface FormData {
   passportFile: File | null;
   certificateFile: File | null;
   visaFile: File | null;
-  uploadMethod: 'client' | 'supabase'; // New field to specify upload method
 }
 
 export const useServiceForm = (serviceType: string) => {
@@ -32,17 +30,12 @@ export const useServiceForm = (serviceType: string) => {
     passportFile: null,
     certificateFile: null,
     visaFile: null,
-    uploadMethod: 'client', // Default to client-side upload
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFileChange = (field: string, file: File | null) => {
     setFormData(prev => ({ ...prev, [field]: file }));
-  };
-
-  const setUploadMethod = (method: 'client' | 'supabase') => {
-    setFormData(prev => ({ ...prev, uploadMethod: method }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,9 +50,9 @@ export const useServiceForm = (serviceType: string) => {
       return;
     }
 
-    console.log('Form submission started with upload method:', formData.uploadMethod);
     console.log('Authenticated user:', user);
     console.log('User ID (UUID):', user.id);
+    console.log('User profile:', userProfile);
 
     setIsSubmitting(true);
 
@@ -67,11 +60,11 @@ export const useServiceForm = (serviceType: string) => {
       // Generate request number
       const requestNumber = `REQ-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
       
-      // Create request
+      // Create request - use user.id (the UUID from Supabase auth)
       const { data: request, error: requestError } = await supabase
         .from('requests')
         .insert({
-          user_id: user.id,
+          user_id: user.id, // Use the UUID from Supabase auth, not userProfile.id
           service_type: serviceType,
           status: 'submitted',
           request_number: requestNumber,
@@ -85,95 +78,68 @@ export const useServiceForm = (serviceType: string) => {
 
       if (requestError) {
         console.error('Error creating request:', requestError);
+        console.error('Request error details:', requestError.message, requestError.code, requestError.details);
         throw new Error('فشل في إنشاء الطلب: ' + requestError.message);
       }
 
       console.log('Request created successfully:', request);
 
-      // Handle file uploads based on selected method
+      // Handle file uploads if any
       const files = [
         { file: formData.passportFile, type: 'passport' },
         { file: formData.certificateFile, type: 'certificate' },
         { file: formData.visaFile, type: 'visa_request' },
       ].filter(item => item.file);
 
-      console.log(`Files to upload: ${files.length} using method: ${formData.uploadMethod}`);
+      console.log('Files to upload:', files.length);
 
       for (const { file, type } of files) {
         if (file) {
-          const uploadOptions = {
-            method: formData.uploadMethod,
-            userId: user.id,
-            requestId: request.id,
-            fileType: type
-          };
-
-          let uploadResult;
+          console.log(`Processing file: ${file.name}, Size: ${file.size} bytes (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
           
-          if (formData.uploadMethod === 'supabase') {
-            // Direct Supabase upload
-            uploadResult = await FileUploadService.uploadToSupabase(file, uploadOptions);
-            
-            if (!uploadResult.success) {
-              throw new Error(uploadResult.error || `فشل في رفع الملف ${type}`);
-            }
+          // Create file path with user ID in folder structure for RLS policy
+          const filePath = `${user.id}/${request.id}/${type}/${file.name}`;
+          
+          console.log('Uploading file to path:', filePath);
+          
+          // Try upload with additional options to handle larger files
+          const { error: uploadError } = await supabase.storage
+            .from('files')
+            .upload(filePath, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
 
-            // Save metadata for Supabase uploads
-            const metadataResult = await FileUploadService.saveFileMetadata(
-              request.id, 
-              type, 
-              uploadResult.filePath!
-            );
+          if (uploadError) {
+            console.error('Upload error:', uploadError);
+            console.error('Upload error details:', uploadError.message);
             
-            if (!metadataResult.success) {
-              throw new Error(metadataResult.error || `فشل في حفظ بيانات الملف ${type}`);
+            // Provide more specific error messages based on error message content
+            if (uploadError.message.includes('413') || uploadError.message.includes('exceeded the maximum allowed size') || uploadError.message.includes('too large')) {
+              throw new Error(`الملف كبير جداً. الحد الأقصى المسموح في النظام أقل من المتوقع. حجم الملف: ${(file.size / 1024 / 1024).toFixed(2)} ميجابايت`);
             }
             
-          } else {
-            // Client-side upload (original method)
-            uploadResult = await FileUploadService.uploadClientSide(file, uploadOptions);
-            
-            if (!uploadResult.success) {
-              throw new Error(uploadResult.error || `فشل في معالجة الملف ${type}`);
-            }
-
-            // For client-side uploads, we still need to upload to Supabase storage
-            const filePath = `${user.id}/${request.id}/${type}/${file.name}`;
-            
-            console.log('Uploading client file to Supabase path:', filePath);
-            
-            const { error: uploadError } = await supabase.storage
-              .from('files')
-              .upload(filePath, file, {
-                cacheControl: '3600',
-                upsert: false
-              });
-
-            if (uploadError) {
-              console.error('Client upload to Supabase error:', uploadError);
-              
-              if (uploadError.message.includes('413') || 
-                  uploadError.message.includes('exceeded the maximum allowed size') || 
-                  uploadError.message.includes('too large')) {
-                throw new Error(`الملف كبير جداً. الحد الأقصى المسموح في النظام أقل من المتوقع. حجم الملف: ${(file.size / 1024 / 1024).toFixed(2)} ميجابايت`);
-              }
-              
-              throw new Error(`فشل في رفع الملف ${type}: ${uploadError.message}`);
-            }
-
-            // Save metadata for client uploads
-            const metadataResult = await FileUploadService.saveFileMetadata(
-              request.id, 
-              type, 
-              filePath
-            );
-            
-            if (!metadataResult.success) {
-              throw new Error(metadataResult.error || `فشل في حفظ بيانات الملف ${type}`);
-            }
+            throw new Error(`فشل في رفع الملف ${type}: ${uploadError.message}`);
           }
 
-          console.log(`File ${type} processed successfully using ${formData.uploadMethod} method`);
+          console.log('File uploaded successfully:', filePath);
+
+          // Save file metadata
+          const { error: fileMetadataError } = await supabase
+            .from('files')
+            .insert({
+              request_id: request.id,
+              file_type: type,
+              file_path: filePath,
+            });
+
+          if (fileMetadataError) {
+            console.error('File metadata error:', fileMetadataError);
+            console.error('File metadata error details:', fileMetadataError.message, fileMetadataError.code);
+            throw new Error(`فشل في حفظ بيانات الملف ${type}: ${fileMetadataError.message}`);
+          }
+
+          console.log('File metadata saved successfully for:', type);
         }
       }
 
@@ -201,7 +167,6 @@ export const useServiceForm = (serviceType: string) => {
     setFormData,
     isSubmitting,
     handleFileChange,
-    setUploadMethod,
     handleSubmit,
   };
 };
