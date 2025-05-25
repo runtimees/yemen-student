@@ -22,6 +22,7 @@ const FormActions = ({ isSubmitting }: FormActionsProps) => {
         type="button"
         variant="outline"
         onClick={() => navigate('/services')}
+        disabled={isSubmitting}
         className="w-full sm:w-auto px-6"
       >
         إلغاء

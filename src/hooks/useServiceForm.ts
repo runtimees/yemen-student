@@ -33,6 +33,8 @@ export const useServiceForm = (serviceType: string) => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submittedRequestNumber, setSubmittedRequestNumber] = useState<string>('');
 
   const handleFileChange = (field: string, file: File | null) => {
     setFormData(prev => ({ ...prev, [field]: file }));
@@ -143,13 +145,16 @@ export const useServiceForm = (serviceType: string) => {
         }
       }
 
+      // Set success state instead of navigating immediately
+      setSubmittedRequestNumber(requestNumber);
+      setIsSubmitted(true);
+
       toast({
         title: "تم إرسال الطلب بنجاح! ✅",
         description: `رقم الطلب: ${requestNumber}\n\nيمكنك استخدام هذا الرقم في تتبع حالة طلبك من خلال صفحة "تتبع الطلبات"`,
-        duration: 8000,
+        duration: 10000,
       });
 
-      navigate('/');
     } catch (error) {
       console.error('Submit error:', error);
       const errorMessage = error instanceof Error ? error.message : 'حدث خطأ أثناء إرسال الطلب';
@@ -163,11 +168,23 @@ export const useServiceForm = (serviceType: string) => {
     }
   };
 
+  const handleBackToServices = () => {
+    navigate('/services');
+  };
+
+  const handleTrackRequest = () => {
+    navigate('/track');
+  };
+
   return {
     formData,
     setFormData,
     isSubmitting,
+    isSubmitted,
+    submittedRequestNumber,
     handleFileChange,
     handleSubmit,
+    handleBackToServices,
+    handleTrackRequest,
   };
 };

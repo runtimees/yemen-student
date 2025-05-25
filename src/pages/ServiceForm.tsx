@@ -8,6 +8,7 @@ import ServiceFormHeader from '@/components/forms/ServiceFormHeader';
 import PersonalInfoFields from '@/components/forms/PersonalInfoFields';
 import FileUploadField from '@/components/forms/FileUploadField';
 import FormActions from '@/components/forms/FormActions';
+import SubmissionSuccess from '@/components/forms/SubmissionSuccess';
 import { useServiceForm } from '@/hooks/useServiceForm';
 
 const ServiceForm = () => {
@@ -20,8 +21,12 @@ const ServiceForm = () => {
     formData,
     setFormData,
     isSubmitting,
+    isSubmitted,
+    submittedRequestNumber,
     handleFileChange,
     handleSubmit,
+    handleBackToServices,
+    handleTrackRequest,
   } = useServiceForm(actualServiceType);
 
   return (
@@ -31,31 +36,39 @@ const ServiceForm = () => {
           <Card className="shadow-lg">
             <ServiceFormHeader serviceType={actualServiceType} />
             <CardContent className="p-4 sm:p-6">
-              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-                <PersonalInfoFields 
-                  formData={formData} 
-                  setFormData={setFormData} 
+              {isSubmitted ? (
+                <SubmissionSuccess 
+                  requestNumber={submittedRequestNumber}
+                  onBackToServices={handleBackToServices}
+                  onTrackRequest={handleTrackRequest}
                 />
-
-                <FileUploadField
-                  serviceType={actualServiceType}
-                  onFileChange={handleFileChange}
-                />
-
-                <div className="space-y-2">
-                  <Label htmlFor="notes">ملاحظات إضافية</Label>
-                  <Textarea
-                    id="notes"
-                    placeholder="أضف أي ملاحظات أو تفاصيل إضافية..."
-                    value={formData.additionalNotes}
-                    onChange={(e) => setFormData(prev => ({ ...prev, additionalNotes: e.target.value }))}
-                    rows={4}
-                    className="w-full resize-none"
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+                  <PersonalInfoFields 
+                    formData={formData} 
+                    setFormData={setFormData} 
                   />
-                </div>
 
-                <FormActions isSubmitting={isSubmitting} />
-              </form>
+                  <FileUploadField
+                    serviceType={actualServiceType}
+                    onFileChange={handleFileChange}
+                  />
+
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">ملاحظات إضافية</Label>
+                    <Textarea
+                      id="notes"
+                      placeholder="أضف أي ملاحظات أو تفاصيل إضافية..."
+                      value={formData.additionalNotes}
+                      onChange={(e) => setFormData(prev => ({ ...prev, additionalNotes: e.target.value }))}
+                      rows={4}
+                      className="w-full resize-none"
+                    />
+                  </div>
+
+                  <FormActions isSubmitting={isSubmitting} />
+                </form>
+              )}
             </CardContent>
           </Card>
         </div>
