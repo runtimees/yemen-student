@@ -21,6 +21,7 @@ const ServiceForm = () => {
     setFormData,
     isSubmitting,
     handleFileChange,
+    setUploadMethod,
     handleSubmit,
   } = useServiceForm(actualServiceType);
 
@@ -40,6 +41,8 @@ const ServiceForm = () => {
                 <FileUploadField
                   serviceType={actualServiceType}
                   onFileChange={handleFileChange}
+                  uploadMethod={formData.uploadMethod}
+                  onUploadMethodChange={setUploadMethod}
                 />
 
                 <div className="space-y-2">
