@@ -144,8 +144,9 @@ export const useServiceForm = (serviceType: string) => {
       }
 
       toast({
-        title: "تم إرسال الطلب بنجاح",
-        description: `رقم الطلب: ${requestNumber}`,
+        title: "تم إرسال الطلب بنجاح! ✅",
+        description: `رقم الطلب: ${requestNumber}\n\nيمكنك استخدام هذا الرقم في تتبع حالة طلبك من خلال صفحة "تتبع الطلبات"`,
+        duration: 8000,
       });
 
       navigate('/');
