@@ -52,32 +52,53 @@ const NewsTicker = () => {
   if (!news.length) return null;
 
   return (
-    <div className="bg-yemen-red text-white py-2 overflow-hidden">
+    <div className="bg-gradient-to-r from-yemen-red via-red-600 to-yemen-red text-white py-4 overflow-hidden shadow-lg">
       <div className="container mx-auto px-4">
+        {/* Beautiful centered title */}
+        <div className="text-center mb-4">
+          <div className="inline-flex items-center justify-center">
+            <div className="h-px bg-gradient-to-r from-transparent via-white to-transparent flex-1 max-w-20"></div>
+            <h2 className="mx-4 text-2xl font-bold bg-gradient-to-r from-yellow-300 via-yellow-200 to-yellow-300 bg-clip-text text-transparent drop-shadow-lg">
+              آخر الأخبار
+            </h2>
+            <div className="h-px bg-gradient-to-r from-transparent via-white to-transparent flex-1 max-w-20"></div>
+          </div>
+        </div>
+
         <div className="flex items-center">
-          <span className="bg-white text-yemen-red px-3 py-1 rounded-md font-bold text-sm flex-shrink-0 ml-4">
+          <span className="bg-gradient-to-r from-white to-gray-100 text-yemen-red px-4 py-2 rounded-lg font-bold text-sm flex-shrink-0 ml-4 shadow-md border border-white/20">
             أخبار
           </span>
           <div className="flex-1 overflow-hidden">
             {/* Desktop: Show scrolling animation */}
             <div className="hidden md:block">
               <div 
-                className="whitespace-nowrap animate-marquee"
+                className="whitespace-nowrap animate-marquee flex items-center"
                 style={{
-                  animation: 'marquee 20s linear infinite'
+                  animation: 'marquee 25s linear infinite'
                 }}
               >
                 {news.map((item, index) => (
-                  <span key={item.id} className="inline-block mr-12">
-                    {item.title} - {item.content}
-                  </span>
+                  <div key={item.id} className="inline-flex items-center mr-16 bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2 border border-white/20">
+                    <div className="w-12 h-12 rounded-full overflow-hidden mr-3 flex-shrink-0 border-2 border-white/30">
+                      <img 
+                        src="https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=150&h=150&fit=crop&crop=face"
+                        alt="News"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-yellow-200 text-sm">{item.title}</span>
+                      <span className="text-white/90 text-sm">{item.content}</span>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
             
             {/* Mobile: Show one item at a time with fade transition */}
             <div className="md:hidden">
-              <div className="relative h-6 overflow-hidden">
+              <div className="relative h-20 overflow-hidden">
                 {news.map((item, index) => (
                   <div
                     key={item.id}
@@ -89,22 +110,38 @@ const NewsTicker = () => {
                           : 'opacity-0 translate-y-full'
                     }`}
                   >
-                    <p className="text-sm line-clamp-1">
-                      {item.title} - {item.content}
-                    </p>
+                    <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                      <div className="w-12 h-12 rounded-full overflow-hidden mr-3 flex-shrink-0 border-2 border-white/30">
+                        <img 
+                          src="https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=150&h=150&fit=crop&crop=face"
+                          alt="News"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex flex-col flex-1 min-w-0">
+                        <p className="font-semibold text-yellow-200 text-sm line-clamp-1">
+                          {item.title}
+                        </p>
+                        <p className="text-white/90 text-sm line-clamp-1">
+                          {item.content}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
               
               {/* Mobile navigation dots */}
               {news.length > 1 && (
-                <div className="flex justify-center mt-2 space-x-1 space-x-reverse">
+                <div className="flex justify-center mt-3 space-x-2 space-x-reverse">
                   {news.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentIndex(index)}
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        index === currentIndex ? 'bg-white' : 'bg-white/50'
+                      className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                        index === currentIndex 
+                          ? 'bg-yellow-300 scale-125 shadow-lg' 
+                          : 'bg-white/50 hover:bg-white/70'
                       }`}
                     />
                   ))}
@@ -121,7 +158,7 @@ const NewsTicker = () => {
           100% { transform: translateX(-100%); }
         }
         .animate-marquee {
-          animation: marquee 20s linear infinite;
+          animation: marquee 25s linear infinite;
         }
       `}</style>
     </div>

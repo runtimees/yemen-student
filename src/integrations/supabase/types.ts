@@ -103,6 +103,8 @@ export type Database = {
           additional_notes: string | null
           admin_notes: string | null
           created_at: string
+          full_name_ar: string | null
+          full_name_en: string | null
           id: string
           major: string | null
           request_number: string
@@ -116,6 +118,8 @@ export type Database = {
           additional_notes?: string | null
           admin_notes?: string | null
           created_at?: string
+          full_name_ar?: string | null
+          full_name_en?: string | null
           id?: string
           major?: string | null
           request_number: string
@@ -129,6 +133,8 @@ export type Database = {
           additional_notes?: string | null
           admin_notes?: string | null
           created_at?: string
+          full_name_ar?: string | null
+          full_name_en?: string | null
           id?: string
           major?: string | null
           request_number?: string
