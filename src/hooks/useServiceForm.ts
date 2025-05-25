@@ -55,6 +55,7 @@ export const useServiceForm = (serviceType: string) => {
     console.log('Authenticated user:', user);
     console.log('User ID (UUID):', user.id);
     console.log('User profile:', userProfile);
+    console.log('Form data being submitted:', formData);
 
     setIsSubmitting(true);
 
@@ -62,15 +63,17 @@ export const useServiceForm = (serviceType: string) => {
       // Generate request number
       const requestNumber = `REQ-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
       
-      // Create request - use user.id (the UUID from Supabase auth)
+      // Create request - include both Arabic and English names
       const { data: request, error: requestError } = await supabase
         .from('requests')
         .insert({
-          user_id: user.id, // Use the UUID from Supabase auth, not userProfile.id
+          user_id: user.id,
           service_type: serviceType,
           status: 'submitted',
           request_number: requestNumber,
           submission_date: new Date().toISOString().split('T')[0],
+          full_name_ar: formData.fullNameAr,
+          full_name_en: formData.fullNameEn,
           university_name: formData.universityName || null,
           major: formData.major || null,
           additional_notes: formData.additionalNotes || null,
