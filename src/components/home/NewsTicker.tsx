@@ -9,6 +9,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
 
 const NewsTicker = () => {
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -61,35 +62,42 @@ const NewsTicker = () => {
           </div>
         </div>
 
-        {/* Carousel */}
-        <div className="relative max-w-4xl mx-auto">
+        {/* Carousel with mobile-friendly navigation */}
+        <div className="relative max-w-6xl mx-auto">
           <Carousel
+            plugins={[
+              Autoplay({
+                delay: 4000,
+                stopOnInteraction: true,
+                stopOnMouseEnter: true,
+              }),
+            ]}
             opts={{
               align: "start",
               loop: true,
             }}
             className="w-full"
           >
-            <CarouselContent>
+            <CarouselContent className="-ml-2 md:-ml-4">
               {news.map((item) => (
-                <CarouselItem key={item.id} className="md:basis-1/2 lg:basis-1/3">
-                  <div className="p-4">
-                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 shadow-xl hover:bg-white/15 transition-all duration-300">
+                <CarouselItem key={item.id} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3">
+                  <div className="p-2 md:p-4">
+                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 md:p-6 border border-white/20 shadow-xl hover:bg-white/15 transition-all duration-300">
                       {/* Large Image */}
-                      <div className="w-full h-48 rounded-lg overflow-hidden mb-4 border-2 border-white/30">
+                      <div className="w-full h-48 md:h-56 rounded-lg overflow-hidden mb-4 border-2 border-white/30">
                         <img 
-                          src="https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=300&h=200&fit=crop&crop=face"
+                          src="https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=400&h=250&fit=crop&crop=face"
                           alt="News"
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                         />
                       </div>
                       
                       {/* Text below image */}
                       <div className="text-center">
-                        <h3 className="font-bold text-lg text-yellow-200 mb-2 line-clamp-2">
+                        <h3 className="font-bold text-lg md:text-xl text-yellow-200 mb-3 line-clamp-2 leading-tight">
                           {item.title}
                         </h3>
-                        <p className="text-white/90 text-sm line-clamp-3">
+                        <p className="text-white/90 text-sm md:text-base line-clamp-3 leading-relaxed">
                           {item.content}
                         </p>
                       </div>
@@ -99,9 +107,9 @@ const NewsTicker = () => {
               ))}
             </CarouselContent>
             
-            {/* Navigation arrows */}
-            <CarouselPrevious className="absolute -left-12 top-1/2 -translate-y-1/2 bg-white/20 border-white/30 text-white hover:bg-white/30 hover:text-white" />
-            <CarouselNext className="absolute -right-12 top-1/2 -translate-y-1/2 bg-white/20 border-white/30 text-white hover:bg-white/30 hover:text-white" />
+            {/* Mobile-friendly navigation arrows */}
+            <CarouselPrevious className="absolute left-2 md:-left-12 top-1/2 -translate-y-1/2 bg-white/30 border-white/40 text-white hover:bg-white/40 hover:text-white w-10 h-10 md:w-8 md:h-8 shadow-lg backdrop-blur-sm z-10" />
+            <CarouselNext className="absolute right-2 md:-right-12 top-1/2 -translate-y-1/2 bg-white/30 border-white/40 text-white hover:bg-white/40 hover:text-white w-10 h-10 md:w-8 md:h-8 shadow-lg backdrop-blur-sm z-10" />
           </Carousel>
         </div>
       </div>
