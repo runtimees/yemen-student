@@ -1,5 +1,6 @@
 
 import { Link } from 'react-router-dom';
+import { Youtube, Send } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -35,8 +36,27 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">تواصل معنا</h3>
             <address className="not-italic text-sm">
-              <p>البريد الإلكتروني: info@yemeni-students.org</p>
-              <p>الهاتف: +964 123 456 789</p>
+              <p>البريد الإلكتروني: yemenistudentiniraq1@gmail.com</p>
+              <div className="flex gap-4 mt-4">
+                <a 
+                  href="https://youtube.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-yemen-red transition-colors"
+                  aria-label="يوتيوب"
+                >
+                  <Youtube size={24} />
+                </a>
+                <a 
+                  href="https://telegram.org" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-yemen-red transition-colors"
+                  aria-label="تليجرام"
+                >
+                  <Send size={24} />
+                </a>
+              </div>
             </address>
           </div>
         </div>
