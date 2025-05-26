@@ -64,6 +64,22 @@ export interface NewsItem {
   created_at: string; // ISO date string
 }
 
+// Student Library Document types
+export type LibraryCategory = 'Medical' | 'Engineering' | 'IT';
+export type StudentCountry = 'Iraq' | 'Yemen';
+
+export interface StudentLibraryDocument {
+  id: number;
+  title: string;
+  description?: string;
+  file_url: string;
+  category: LibraryCategory;
+  country: StudentCountry;
+  uploaded_by_admin_id?: number;
+  upload_date: string; // ISO date string
+  created_at: string; // ISO date string
+}
+
 // Request tracking history
 export interface RequestTracking {
   id: number;

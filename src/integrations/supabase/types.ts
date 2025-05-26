@@ -154,6 +154,50 @@ export type Database = {
           },
         ]
       }
+      student_library_documents: {
+        Row: {
+          category: string
+          country: string
+          created_at: string
+          description: string | null
+          file_url: string
+          id: string
+          title: string
+          upload_date: string
+          uploaded_by_admin_id: string | null
+        }
+        Insert: {
+          category: string
+          country: string
+          created_at?: string
+          description?: string | null
+          file_url: string
+          id?: string
+          title: string
+          upload_date?: string
+          uploaded_by_admin_id?: string | null
+        }
+        Update: {
+          category?: string
+          country?: string
+          created_at?: string
+          description?: string | null
+          file_url?: string
+          id?: string
+          title?: string
+          upload_date?: string
+          uploaded_by_admin_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_library_documents_uploaded_by_admin_id_fkey"
+            columns: ["uploaded_by_admin_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           created_at: string
