@@ -1,4 +1,3 @@
-
 /**
  * Database Types for Yemen Student Platform
  * This file contains TypeScript interfaces that reflect the database design.
@@ -60,6 +59,7 @@ export interface NewsItem {
   id: number;
   title: string;
   content: string;
+  image_url?: string; // Added image_url field
   is_active: boolean;
   created_at: string; // ISO date string
 }

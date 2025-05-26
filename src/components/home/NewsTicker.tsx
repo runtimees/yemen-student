@@ -32,13 +32,15 @@ const NewsTicker = () => {
       }
 
       if (data) {
+        console.log('Raw news data from database:', data);
         const newsItems: NewsItem[] = data.map(item => ({
-          id: parseInt(item.id),
+          id: parseInt(item.id) || Math.random(), // Fallback to random number if id is invalid
           title: item.title,
           content: item.content,
           is_active: item.is_active,
           created_at: item.created_at
         }));
+        console.log('Processed news items:', newsItems);
         setNews(newsItems);
       }
     } catch (error) {
@@ -79,16 +81,20 @@ const NewsTicker = () => {
             className="w-full"
           >
             <CarouselContent className="-ml-2 md:-ml-4">
-              {news.map((item) => (
-                <CarouselItem key={item.id} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3">
+              {news.map((item, index) => (
+                <CarouselItem key={`news-${item.id}-${index}`} className="pl-2 md:pl-4 basis-full md:basis-1/2 lg:basis-1/3">
                   <div className="p-2 md:p-4">
                     <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 md:p-6 border border-white/20 shadow-xl hover:bg-white/15 transition-all duration-300">
-                      {/* Large Image */}
+                      {/* Image from database or fallback */}
                       <div className="w-full h-48 md:h-56 rounded-lg overflow-hidden mb-4 border-2 border-white/30">
                         <img 
-                          src="https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=400&h=250&fit=crop&crop=face"
-                          alt="News"
+                          src={item.image_url || "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=400&h=250&fit=crop&crop=face"}
+                          alt={item.title}
                           className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          onError={(e) => {
+                            console.log(`Image failed to load for news item ${item.id}:`, item.image_url);
+                            e.currentTarget.src = "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=400&h=250&fit=crop&crop=face";
+                          }}
                         />
                       </div>
                       
