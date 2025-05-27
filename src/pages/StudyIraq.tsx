@@ -1,21 +1,11 @@
 
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const StudyIraq = () => {
-  const navigate = useNavigate();
-
   useEffect(() => {
-    // This is just a placeholder. In a real implementation, we would redirect to the actual Study in Iraq platform
-    const timer = setTimeout(() => {
-      // For demo purposes, we'll just navigate back to the home page
-      navigate('/');
-      // In a real implementation, you would use:
-      // window.location.href = "https://study-iraq-platform.com";
-    }, 5000);
-    
-    return () => clearTimeout(timer);
-  }, [navigate]);
+    // Redirect to the actual Study in Iraq platform
+    window.location.href = "https://studyiniraq.scrd-gate.gov.iq";
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen" dir="rtl">
@@ -25,12 +15,17 @@ const StudyIraq = () => {
             <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-yemen-red mx-auto mb-6"></div>
             <h1 className="text-2xl font-bold mb-4">جاري تحويلك إلى منصة الدراسة في العراق</h1>
             <p className="text-gray-600 mb-4">سيتم تحويلك تلقائياً خلال ثوانٍ...</p>
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-500 text-sm mb-4">
               إذا لم يتم تحويلك تلقائياً، يرجى النقر على الرابط أدناه:
             </p>
-            <button className="text-yemen-blue hover:underline mt-2">
+            <a 
+              href="https://studyiniraq.scrd-gate.gov.iq" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-yemen-blue hover:underline"
+            >
               انتقل إلى منصة الدراسة في العراق
-            </button>
+            </a>
           </div>
         </div>
       </main>
