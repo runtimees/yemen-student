@@ -1,14 +1,30 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import FeatureCard from '@/components/home/FeatureCard';
 import NewsTicker from '@/components/home/NewsTicker';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
+import { useOfflineDetection } from '@/hooks/useOfflineDetection';
+import OfflinePage from '@/components/OfflinePage';
+import LoginPrompt from '@/components/auth/LoginPrompt';
 
 const Index = () => {
   const { isAuthenticated, userProfile } = useAuth();
   const { toast } = useToast();
+  const isOnline = useOfflineDetection();
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
+  useEffect(() => {
+    // Show login prompt immediately when page loads if user is not authenticated
+    if (!isAuthenticated) {
+      const timer = setTimeout(() => {
+        setShowLoginPrompt(true);
+      }, 1000); // Show after 1 second for better UX
+
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     // Show login notification if the user is already logged in when they load the page
@@ -19,6 +35,11 @@ const Index = () => {
       });
     }
   }, [isAuthenticated, userProfile]);
+
+  // Show offline page when no internet connection
+  if (!isOnline) {
+    return <OfflinePage />;
+  }
 
   const features = [
     {
@@ -55,6 +76,11 @@ const Index = () => {
 
   return (
     <div className="flex flex-col min-h-screen" dir="rtl">
+      {/* Login Prompt Modal */}
+      {showLoginPrompt && !isAuthenticated && (
+        <LoginPrompt onClose={() => setShowLoginPrompt(false)} />
+      )}
+
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-yemen-black via-gray-800 to-gray-900 text-white py-16 px-4">
         <div className="container mx-auto text-center">
