@@ -101,8 +101,7 @@ const Header = () => {
                     <span className="hidden md:inline text-sm">{userProfile?.full_name_ar}</span>
                   </div>
                   <Button 
-                    variant="outline" 
-                    className="text-white border-yemen-red hover:bg-yemen-red flex items-center gap-2"
+                    className="bg-red-600 hover:bg-red-700 text-white border-0 flex items-center gap-2"
                     onClick={handleLogout}
                   >
                     <LogOut size={18} />
@@ -112,8 +111,7 @@ const Header = () => {
               ) : (
                 <>
                   <Button 
-                    variant="outline" 
-                    className="text-white border-yemen-red hover:bg-yemen-red flex items-center gap-2"
+                    className="bg-yemen-blue hover:bg-blue-700 text-white border-0 flex items-center gap-2"
                     onClick={openLogin}
                   >
                     <LogIn size={18} />
