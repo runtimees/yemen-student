@@ -92,7 +92,7 @@ const Header = () => {
             <div className="flex space-x-2">
               {isAuthenticated ? (
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
+                  <Link to="/profile" className="flex items-center gap-2 hover:bg-yemen-blue/20 rounded-lg p-2 transition-colors">
                     <Avatar className="h-8 w-8 border border-yemen-blue">
                       <AvatarImage 
                         src={userProfile?.profile_picture_url} 
@@ -104,7 +104,7 @@ const Header = () => {
                       </AvatarFallback>
                     </Avatar>
                     <span className="hidden md:inline text-sm">{userProfile?.full_name_ar}</span>
-                  </div>
+                  </Link>
                   <Button 
                     className="bg-red-600 hover:bg-red-700 text-white border-0 flex items-center gap-2"
                     onClick={handleLogout}

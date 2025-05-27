@@ -9,6 +9,7 @@ import Vision from '@/pages/Vision';
 import StudyIraq from '@/pages/StudyIraq';
 import MovementGuides from '@/pages/MovementGuides';
 import StudentLibrary from '@/pages/StudentLibrary';
+import Profile from '@/pages/Profile';
 import NotFound from '@/pages/NotFound';
 import ServiceForm from '@/pages/ServiceForm';
 import Header from '@/components/layout/Header';
@@ -28,6 +29,7 @@ function App() {
           <Route path="/study-iraq" element={<StudyIraq />} />
           <Route path="/movement-guides" element={<MovementGuides />} />
           <Route path="/student-library" element={<StudentLibrary />} />
+          <Route path="/profile" element={<AuthGuard><Profile /></AuthGuard>} />
           <Route path="/service/:serviceType" element={<AuthGuard><ServiceForm /></AuthGuard>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
