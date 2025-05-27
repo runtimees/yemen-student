@@ -34,11 +34,12 @@ const NewsTicker = () => {
       if (data) {
         console.log('Raw news data from database:', data);
         const newsItems: NewsItem[] = data.map(item => ({
-          id: parseInt(item.id) || Math.random(), // Fallback to random number if id is invalid
+          id: item.id, // Keep the UUID as string instead of parsing as integer
           title: item.title,
           content: item.content,
           is_active: item.is_active,
-          created_at: item.created_at
+          created_at: item.created_at,
+          image_url: item.image_url // Include the image_url field
         }));
         console.log('Processed news items:', newsItems);
         setNews(newsItems);

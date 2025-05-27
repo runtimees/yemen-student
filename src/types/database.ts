@@ -57,12 +57,12 @@ export interface UploadedFile {
 
 // News item for announcement slider
 export interface NewsItem {
-  id: number;
+  id: string; // Changed from number to string to handle UUIDs properly
   title: string;
   content: string;
-  image_url?: string; // Added image_url field
   is_active: boolean;
   created_at: string; // ISO date string
+  image_url?: string; // Added image_url field as optional
 }
 
 // Student Library Document types
