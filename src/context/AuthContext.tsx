@@ -69,6 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   password_hash: '',
                   phone_number: profile.phone_number || undefined,
                   role: profile.role as 'student' | 'admin',
+                  profile_picture_url: profile.profile_picture_url || undefined,
                   created_at: profile.created_at
                 });
               }
