@@ -62,7 +62,7 @@ const Header = () => {
                 />
               </div>
             </div>
-            <h1 className="text-xl font-bold">منصة الطلبة اليمنيين في العراق</h1>
+            <h1 className="text-xl font-bold">منصة الطلبة اليمنيين في العراق "نجد"</h1>
           </div>
           
           <div className="flex flex-col md:flex-row items-center">

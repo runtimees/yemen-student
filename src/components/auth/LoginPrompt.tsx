@@ -61,7 +61,7 @@ const LoginPrompt = ({ onClose }: LoginPromptProps) => {
             </div>
           </div>
           <CardTitle className="text-2xl text-yemen-black">
-            مرحباً بك في منصة الطلبة اليمنيين
+            مرحباً بك في منصة الطلبة اليمنيين "نجد"
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">

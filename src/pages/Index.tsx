@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import FeatureCard from '@/components/home/FeatureCard';
@@ -31,7 +32,7 @@ const Index = () => {
     if (isAuthenticated && userProfile) {
       toast({
         title: `مرحباً ${userProfile.full_name_ar}`, 
-        description: "أنت مسجل الدخول في منصة الطلبة اليمنيين",
+        description: "أنت مسجل الدخول في منصة الطلبة اليمنيين نجد",
       });
     }
   }, [isAuthenticated, userProfile]);
@@ -94,7 +95,7 @@ const Index = () => {
             </div>
           </div>
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 fade-in" style={{ animationDelay: '0.4s' }}>
-            منصة الطلبة اليمنيين في العراق
+            منصة الطلبة اليمنيين في العراق "نجد"
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-gray-200 fade-in" style={{ animationDelay: '0.6s' }}>
             نحو تعليم عالٍ أسهل وأكثر تمكينًا

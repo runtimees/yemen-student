@@ -8,7 +8,7 @@ const Footer = () => {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-lg font-semibold mb-4">منصة الطلبة اليمنيين</h3>
+            <h3 className="text-lg font-semibold mb-4">منصة الطلبة اليمنيين "نجد"</h3>
             <p className="text-sm">
               نحو تعليم عالٍ أسهل وأكثر تمكينًا للطلاب اليمنيين في العراق.
             </p>
@@ -62,7 +62,7 @@ const Footer = () => {
         </div>
         <div className="border-t border-gray-700 mt-8 pt-6 text-center">
           <p className="text-sm">
-            &copy; {new Date().getFullYear()} منصة الطلبة اليمنيين في العراق. جميع الحقوق محفوظة.
+            &copy; {new Date().getFullYear()} منصة الطلبة اليمنيين في العراق "نجد". جميع الحقوق محفوظة.
           </p>
         </div>
       </div>
