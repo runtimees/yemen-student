@@ -12,6 +12,7 @@ export interface User {
   password_hash: string;
   phone_number?: string;
   role: 'student' | 'admin';
+  profile_picture_url?: string; // Added profile picture URL field
   created_at: string; // ISO date string
 }
 

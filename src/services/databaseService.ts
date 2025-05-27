@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { User, Request, UploadedFile, NewsItem } from '@/types/database';
 
@@ -24,6 +23,7 @@ export const databaseService = {
       password_hash: '', // No longer store password hash in client
       phone_number: data.phone_number || undefined,
       role: data.role,
+      profile_picture_url: data.profile_picture_url || undefined, // Added profile picture URL
       created_at: data.created_at
     };
   },
@@ -57,6 +57,7 @@ export const databaseService = {
         email: userData.email,
         phone_number: userData.phone_number,
         role: userData.role,
+        profile_picture_url: userData.profile_picture_url,
       })
       .select()
       .single();
@@ -74,10 +75,11 @@ export const databaseService = {
       password_hash: '',
       phone_number: data.phone_number || undefined,
       role: data.role,
+      profile_picture_url: data.profile_picture_url || undefined,
       created_at: data.created_at
     };
   },
-
+  
   // Request operations
   getRequestsByUserId: async (userId: number): Promise<Request[]> => {
     const { data, error } = await supabase
@@ -167,7 +169,7 @@ export const databaseService = {
       created_at: data.created_at
     };
   },
-
+  
   // File operations
   getFilesByRequestId: async (requestId: number): Promise<UploadedFile[]> => {
     const { data, error } = await supabase
@@ -232,7 +234,7 @@ export const databaseService = {
       uploaded_at: data.uploaded_at
     };
   },
-
+  
   // News operations
   getActiveNews: async (): Promise<NewsItem[]> => {
     const { data, error } = await supabase

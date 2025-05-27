@@ -94,6 +94,11 @@ const Header = () => {
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
                     <Avatar className="h-8 w-8 border border-yemen-blue">
+                      <AvatarImage 
+                        src={userProfile?.profile_picture_url} 
+                        alt={userProfile?.full_name_ar}
+                        className="object-cover"
+                      />
                       <AvatarFallback className="bg-yemen-blue text-white">
                         {userProfile?.full_name_ar?.charAt(0)}
                       </AvatarFallback>
