@@ -55,9 +55,18 @@ const ProfilePictureUpload = () => {
     setUploading(true);
 
     try {
+      // Get the current authenticated user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        throw new Error('المستخدم غير مُصادق عليه');
+      }
+
+      console.log('Current user ID:', user.id);
+
       // Create unique filename
       const fileExt = file.name.split('.').pop();
-      const fileName = `${userProfile.id}-${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
       const filePath = `profile-pictures/${fileName}`;
 
       // Upload to Supabase Storage
@@ -74,11 +83,11 @@ const ProfilePictureUpload = () => {
         .from('user-uploads')
         .getPublicUrl(filePath);
 
-      // Update user profile in database
+      // Update user profile in database using the authenticated user's ID
       const { error: updateError } = await supabase
         .from('users')
         .update({ profile_picture_url: urlData.publicUrl })
-        .eq('id', userProfile.id);
+        .eq('id', user.id);
 
       if (updateError) {
         throw updateError;
