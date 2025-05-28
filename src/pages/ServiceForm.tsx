@@ -1,5 +1,6 @@
 
 import { useParams } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,7 +10,9 @@ import PersonalInfoFields from '@/components/forms/PersonalInfoFields';
 import FileUploadField from '@/components/forms/FileUploadField';
 import FormActions from '@/components/forms/FormActions';
 import SubmissionSuccess from '@/components/forms/SubmissionSuccess';
+import MedicalExamAlert from '@/components/alerts/MedicalExamAlert';
 import { useServiceForm } from '@/hooks/useServiceForm';
+import { useMedicalExamAlert } from '@/hooks/useMedicalExamAlert';
 
 const ServiceForm = () => {
   const { serviceType } = useParams<{ serviceType: string }>();
@@ -28,6 +31,28 @@ const ServiceForm = () => {
     handleBackToServices,
     handleTrackRequest,
   } = useServiceForm(actualServiceType);
+
+  const { showAlert, triggerAlert, closeAlert } = useMedicalExamAlert();
+
+  // Trigger medical exam alert when accessing any service
+  useEffect(() => {
+    const servicesRequiringMedicalExam = [
+      'certificate_authentication',
+      'certificate_documentation', 
+      'ministry_authentication',
+      'passport_renewal',
+      'visa_request'
+    ];
+
+    if (servicesRequiringMedicalExam.includes(actualServiceType)) {
+      // Small delay to ensure the component is mounted
+      const timer = setTimeout(() => {
+        triggerAlert();
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [actualServiceType, triggerAlert]);
 
   return (
     <AuthGuard>
@@ -73,6 +98,12 @@ const ServiceForm = () => {
           </Card>
         </div>
       </div>
+
+      {/* Medical Exam Alert Modal */}
+      <MedicalExamAlert 
+        isOpen={showAlert}
+        onClose={closeAlert}
+      />
     </AuthGuard>
   );
 };
