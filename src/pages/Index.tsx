@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import FeatureCard from '@/components/home/FeatureCard';
@@ -135,9 +136,9 @@ const Index = () => {
           
           <Tabs defaultValue="services" className="w-full max-w-6xl mx-auto">
             <TabsList className="grid w-full grid-cols-3 mb-8">
-              <TabsTrigger value="services">الخدمات الأساسية</TabsTrigger>
-              <TabsTrigger value="discussion">🔹 Discussion Groups</TabsTrigger>
-              <TabsTrigger value="announcements">📢 Academic Announcements</TabsTrigger>
+              <TabsTrigger value="services">🔧 الخدمات الأساسية</TabsTrigger>
+              <TabsTrigger value="discussion">💬 مجموعات النقاش</TabsTrigger>
+              <TabsTrigger value="announcements">📢 الإعلانات الأكاديمية</TabsTrigger>
             </TabsList>
             
             <TabsContent value="services">
