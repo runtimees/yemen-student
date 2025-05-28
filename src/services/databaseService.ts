@@ -249,11 +249,12 @@ export const databaseService = {
     }
     
     return data.map(item => ({
-      id: parseInt(item.id),
+      id: item.id, // Keep as string since it's a UUID
       title: item.title,
       content: item.content,
       is_active: item.is_active,
-      created_at: item.created_at
+      created_at: item.created_at,
+      image_url: item.image_url
     }));
   },
   
