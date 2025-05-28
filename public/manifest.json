@@ -17,13 +17,25 @@
       "src": "/lovable-uploads/b574fb6b-a045-4b0d-947b-360bf3adbbec.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/lovable-uploads/b574fb6b-a045-4b0d-947b-360bf3adbbec.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/lovable-uploads/b574fb6b-a045-4b0d-947b-360bf3adbbec.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/lovable-uploads/b574fb6b-a045-4b0d-947b-360bf3adbbec.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "screenshots": [
