@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import FeatureCard from '@/components/home/FeatureCard';
@@ -19,6 +18,7 @@ const Index = () => {
   const isOnline = useOfflineDetection();
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [isDiscussionGroupsOpen, setIsDiscussionGroupsOpen] = useState(false);
+  const [isStudentLinksOpen, setIsStudentLinksOpen] = useState(false);
 
   useEffect(() => {
     // Show login prompt immediately when page loads if user is not authenticated
@@ -98,6 +98,18 @@ const Index = () => {
     }
   ];
 
+  const studentServiceLinks = [
+    {
+      name: "🩺 صفحة الفحص الطبي",
+      link: "https://ur.gov.iq/index/login",
+      description: "يجب على جميع الطلاب إكمال الفحص الطبي بنجاح قبل بدء إجراءات التقديم للدراسة في العراق. يُرجى الدخول على الرابط أعلاه وإجراء الفحص في المراكز الطبية المعتمدة."
+    },
+    {
+      name: "🏠 صفحة التسجيل في السكن",
+      link: "https://ur.gov.iq/index/login"
+    }
+  ];
+
   return (
     <div className="flex flex-col min-h-screen" dir="rtl">
       {/* Login Prompt Modal */}
@@ -135,8 +147,9 @@ const Index = () => {
           <h2 className="text-3xl font-bold text-center mb-12 text-yemen-black fade-in">خدمات المنصة</h2>
           
           <Tabs defaultValue="services" className="w-full max-w-6xl mx-auto">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsList className="grid w-full grid-cols-4 mb-8">
               <TabsTrigger value="services">🔧 الخدمات الأساسية</TabsTrigger>
+              <TabsTrigger value="student-links">📎 روابط الخدمات الطلابية</TabsTrigger>
               <TabsTrigger value="discussion">💬 مجموعات النقاش</TabsTrigger>
               <TabsTrigger value="announcements">📢 الإعلانات الأكاديمية</TabsTrigger>
             </TabsList>
@@ -157,6 +170,42 @@ const Index = () => {
                     />
                   </div>
                 ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="student-links">
+              <div className="max-w-2xl mx-auto">
+                <Collapsible open={isStudentLinksOpen} onOpenChange={setIsStudentLinksOpen}>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow border border-yemen-blue">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">📎</span>
+                      <h3 className="text-xl font-bold text-yemen-black">روابط الخدمات الطلابية</h3>
+                    </div>
+                    <ChevronDown className={`h-5 w-5 transition-transform ${isStudentLinksOpen ? 'rotate-180' : ''}`} />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-4">
+                    <div className="grid gap-4">
+                      {studentServiceLinks.map((service, index) => (
+                        <div key={index} className="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200 hover:border-yemen-blue">
+                          <a
+                            href={service.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 text-gray-700 hover:text-yemen-blue transition-colors font-medium"
+                          >
+                            <span className="text-lg">{service.name.split(' ')[0]}</span>
+                            <span>{service.name.substring(service.name.indexOf(' ') + 1)}</span>
+                          </a>
+                          {service.description && (
+                            <p className="mt-3 text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded border-r-4 border-yemen-blue">
+                              {service.description}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
               </div>
             </TabsContent>
             
