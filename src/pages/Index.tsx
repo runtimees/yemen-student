@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import FeatureCard from '@/components/home/FeatureCard';
@@ -81,19 +80,19 @@ const Index = () => {
 
   const discussionGroups = [
     {
-      name: "🩺 Medical Discussion Group",
+      name: "🩺 مجموعة النقاش الطبي",
       link: "https://t.me/medical_group_edu"
     },
     {
-      name: "🏗️ Engineering Discussion Group", 
+      name: "🏗️ مجموعة النقاش الهندسي", 
       link: "https://t.me/engineering_group_edu"
     },
     {
-      name: "💻 Computer & Tech Group",
+      name: "💻 مجموعة الحاسوب والتقنية",
       link: "https://t.me/tech_group_edu"
     },
     {
-      name: "🌐 General Academic Group",
+      name: "🌐 المجموعة الأكاديمية العامة",
       link: "https://t.me/general_group_edu"
     }
   ];

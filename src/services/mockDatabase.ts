@@ -55,20 +55,22 @@ const uploadedFiles: UploadedFile[] = [
 ];
 
 // Mock news
-const news: NewsItem[] = [
+const mockNews: NewsItem[] = [
   {
-    id: 1,
-    title: 'تحديث نظام المنصة',
-    content: 'تم تحديث نظام المنصة لتوفير خدمات أفضل للطلبة',
+    id: "1",
+    title: "أهلاً وسهلاً بكم في منصة الطلبة اليمنيين",
+    content: "نتطلع لخدمتكم بأفضل ما لدينا",
     is_active: true,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    image_url: "/lovable-uploads/3f42ec74-bc6b-49c4-8f8c-3a5e6895dc36.png"
   },
   {
-    id: 2,
-    title: 'موعد استلام الطلبات',
-    content: 'سيتم استلام طلبات الفصل الدراسي القادم بدءا من 1 سبتمبر',
+    id: "2", 
+    title: "خدمات جديدة متاحة الآن",
+    content: "تم إضافة خدمات جديدة لتسهيل إجراءاتكم",
     is_active: true,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    image_url: null
   }
 ];
 
@@ -125,7 +127,7 @@ export const mockDatabase = {
 
   // News operations
   getActiveNews: () => {
-    return news.filter(item => item.is_active);
+    return mockNews.filter(item => item.is_active);
   }
 };
 

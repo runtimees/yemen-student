@@ -255,6 +255,38 @@ export const databaseService = {
       is_active: item.is_active,
       created_at: item.created_at
     }));
+  },
+  
+  getNews: async (): Promise<NewsItem[]> => {
+    // Mock data for now - replace with actual API call
+    const mockNews = [
+      {
+        id: "1",
+        title: "مرحباً بكم في منصة الطلبة اليمنيين",
+        content: "نحن سعداء لخدمتكم وتقديم أفضل الخدمات للطلبة اليمنيين في العراق",
+        is_active: true,
+        created_at: new Date().toISOString(),
+        image_url: null
+      },
+      {
+        id: "2", 
+        title: "خدمة توثيق الشهادات متاحة الآن",
+        content: "يمكنكم الآن طلب خدمة توثيق الشهادات إلكترونياً من خلال المنصة",
+        is_active: true,
+        created_at: new Date().toISOString(),
+        image_url: null
+      },
+      {
+        id: "3",
+        title: "تحديث مهم: ساعات العمل الجديدة",
+        content: "تم تحديث ساعات العمل لتكون من الساعة 8 صباحاً حتى 4 عصراً",
+        is_active: true,
+        created_at: new Date().toISOString(),
+        image_url: null
+      }
+    ];
+
+    return mockNews;
   }
 };
 
