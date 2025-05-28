@@ -4,6 +4,9 @@ import { Link } from 'react-router-dom';
 import FeatureCard from '@/components/home/FeatureCard';
 import NewsTicker from '@/components/home/NewsTicker';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDown } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/components/ui/use-toast';
 import { useOfflineDetection } from '@/hooks/useOfflineDetection';
@@ -15,6 +18,7 @@ const Index = () => {
   const { toast } = useToast();
   const isOnline = useOfflineDetection();
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [isDiscussionGroupsOpen, setIsDiscussionGroupsOpen] = useState(false);
 
   useEffect(() => {
     // Show login prompt immediately when page loads if user is not authenticated
@@ -75,6 +79,25 @@ const Index = () => {
     }
   ];
 
+  const discussionGroups = [
+    {
+      name: "🩺 Medical Discussion Group",
+      link: "https://t.me/medical_group_edu"
+    },
+    {
+      name: "🏗️ Engineering Discussion Group", 
+      link: "https://t.me/engineering_group_edu"
+    },
+    {
+      name: "💻 Computer & Tech Group",
+      link: "https://t.me/tech_group_edu"
+    },
+    {
+      name: "🌐 General Academic Group",
+      link: "https://t.me/general_group_edu"
+    }
+  ];
+
   return (
     <div className="flex flex-col min-h-screen" dir="rtl">
       {/* Login Prompt Modal */}
@@ -110,22 +133,82 @@ const Index = () => {
       <section className="py-12 bg-gradient-to-b from-gray-50 to-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12 text-yemen-black fade-in">خدمات المنصة</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-            {features.map((feature, index) => (
-              <div 
-                key={index} 
-                className="fade-in hover-card-effect" 
-                style={{ animationDelay: `${0.2 + index * 0.1}s` }}
-              >
-                <FeatureCard
-                  title={feature.title}
-                  description={feature.description}
-                  icon={feature.icon}
-                  link={feature.link}
-                />
+          
+          <Tabs defaultValue="services" className="w-full max-w-6xl mx-auto">
+            <TabsList className="grid w-full grid-cols-3 mb-8">
+              <TabsTrigger value="services">الخدمات الأساسية</TabsTrigger>
+              <TabsTrigger value="discussion">🔹 Discussion Groups</TabsTrigger>
+              <TabsTrigger value="announcements">📢 Academic Announcements</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="services">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                {features.map((feature, index) => (
+                  <div 
+                    key={index} 
+                    className="fade-in hover-card-effect" 
+                    style={{ animationDelay: `${0.2 + index * 0.1}s` }}
+                  >
+                    <FeatureCard
+                      title={feature.title}
+                      description={feature.description}
+                      icon={feature.icon}
+                      link={feature.link}
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </TabsContent>
+            
+            <TabsContent value="discussion">
+              <div className="max-w-2xl mx-auto">
+                <Collapsible open={isDiscussionGroupsOpen} onOpenChange={setIsDiscussionGroupsOpen}>
+                  <CollapsibleTrigger className="flex items-center justify-between w-full p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow border border-yemen-blue">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">💬</span>
+                      <h3 className="text-xl font-bold text-yemen-black">مجموعات النقاش الأكاديمية</h3>
+                    </div>
+                    <ChevronDown className={`h-5 w-5 transition-transform ${isDiscussionGroupsOpen ? 'rotate-180' : ''}`} />
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="mt-4">
+                    <div className="grid gap-3">
+                      {discussionGroups.map((group, index) => (
+                        <a
+                          key={index}
+                          href={group.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200 hover:border-yemen-blue"
+                        >
+                          <span className="text-lg">{group.name.split(' ')[0]}</span>
+                          <span className="text-gray-700 hover:text-yemen-blue transition-colors">
+                            {group.name.substring(group.name.indexOf(' ') + 1)}
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="announcements">
+              <div className="max-w-md mx-auto">
+                <a
+                  href="https://t.me/edu_announcements"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block p-8 bg-gradient-to-r from-yemen-blue to-blue-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
+                >
+                  <div className="text-center">
+                    <div className="text-4xl mb-4">📢</div>
+                    <h3 className="text-xl font-bold mb-2">الإعلانات الأكاديمية</h3>
+                    <p className="text-blue-100">انضم إلى قناة الإعلانات للحصول على آخر التحديثات</p>
+                  </div>
+                </a>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </section>
 
