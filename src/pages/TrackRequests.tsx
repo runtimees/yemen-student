@@ -12,7 +12,7 @@ const TrackRequests = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(true); // Simulate logged in state for now
   const [resultModalOpen, setResultModalOpen] = useState(false);
   
-  const { isLoading, requestData, statusTimeline, fetchRequestData } = useRequestTracking();
+  const { isLoading, requestData, fetchRequestData } = useRequestTracking();
 
   const openLogin = () => {
     setIsSignupOpen(false);
@@ -58,7 +58,6 @@ const TrackRequests = () => {
         open={resultModalOpen}
         onOpenChange={setResultModalOpen}
         requestData={requestData}
-        statusTimeline={statusTimeline}
       />
 
       <LoginForm

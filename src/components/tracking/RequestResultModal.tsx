@@ -1,8 +1,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { translateServiceType, translateStatus } from '@/utils/requestUtils';
-import StatusTimeline from './StatusTimeline';
+import { translateServiceType } from '@/utils/requestUtils';
 
 interface RequestData {
   request_number: string;
@@ -13,20 +12,13 @@ interface RequestData {
   created_at: string;
 }
 
-interface StatusTimelineItem {
-  status: string;
-  date: string;
-  complete: boolean;
-}
-
 interface RequestResultModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   requestData: RequestData | null;
-  statusTimeline: StatusTimelineItem[];
 }
 
-const RequestResultModal = ({ open, onOpenChange, requestData, statusTimeline }: RequestResultModalProps) => {
+const RequestResultModal = ({ open, onOpenChange, requestData }: RequestResultModalProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]" dir="rtl">
@@ -35,13 +27,39 @@ const RequestResultModal = ({ open, onOpenChange, requestData, statusTimeline }:
         </DialogHeader>
         <div className="p-4">
           {requestData && (
-            <>
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                <h3 className="font-bold text-xl mb-2">بيانات الطلب</h3>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+              <h3 className="font-bold text-xl mb-4">بيانات الطلب</h3>
+              <div className="space-y-3">
                 <p><strong>رقم الطلب:</strong> {requestData.request_number}</p>
                 <p><strong>تاريخ التقديم:</strong> {new Date(requestData.created_at).toLocaleDateString('ar-SA')}</p>
                 <p><strong>نوع الخدمة:</strong> {translateServiceType(requestData.service_type)}</p>
-                <p><strong>حالة الطلب:</strong> <span className="font-bold text-yemen-blue">{translateStatus(requestData.status)}</span></p>
+                
+                <div className="mt-4">
+                  <h4 className="font-bold text-lg mb-3">مراحل معالجة الطلب</h4>
+                  
+                  {/* Order Received Status */}
+                  <div className="flex items-center mb-3">
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                      ✓
+                    </div>
+                    <div className="ms-3 flex-1">
+                      <p className="font-bold text-gray-900">تم استلام الطلب</p>
+                      <p className="text-sm text-gray-600">{new Date(requestData.created_at).toLocaleDateString('ar-SA')}</p>
+                    </div>
+                  </div>
+
+                  {/* Current Order Status */}
+                  <div className="mt-4 p-3 bg-white border border-gray-300 rounded">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">حالة الطلب:</label>
+                    <div className="w-full p-2 border border-gray-300 rounded bg-gray-50">
+                      {requestData.status === 'submitted' && 'تم استلام الطلب'}
+                      {requestData.status === 'under_review' && 'قيد المراجعة'}
+                      {requestData.status === 'processing' && 'قيد المعالجة'}
+                      {requestData.status === 'approved' && 'تمت الموافقة'}
+                      {requestData.status === 'rejected' && 'تم الرفض'}
+                    </div>
+                  </div>
+                </div>
                 
                 {requestData.admin_notes && (
                   <div className="mt-3 p-2 bg-yellow-50 rounded border border-yellow-200">
@@ -49,9 +67,7 @@ const RequestResultModal = ({ open, onOpenChange, requestData, statusTimeline }:
                   </div>
                 )}
               </div>
-              
-              <StatusTimeline timeline={statusTimeline} />
-            </>
+            </div>
           )}
           
           <div className="mt-6 text-center">

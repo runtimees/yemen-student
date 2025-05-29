@@ -242,7 +242,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_request_by_number: {
+        Args: { search_number: string }
+        Returns: {
+          request_number: string
+          status: string
+          service_type: string
+          admin_notes: string
+          submission_date: string
+          created_at: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
