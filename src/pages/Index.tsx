@@ -147,11 +147,23 @@ const Index = () => {
           <h2 className="text-3xl font-bold text-center mb-12 text-yemen-black fade-in">خدمات المنصة</h2>
           
           <Tabs defaultValue="services" className="w-full max-w-6xl mx-auto">
-            <TabsList className="grid w-full grid-cols-4 mb-8">
-              <TabsTrigger value="services">🔧 الخدمات الأساسية</TabsTrigger>
-              <TabsTrigger value="student-links">📎 روابط الخدمات الطلابية</TabsTrigger>
-              <TabsTrigger value="discussion">💬 مجموعات النقاش</TabsTrigger>
-              <TabsTrigger value="announcements">📢 الإعلانات الأكاديمية</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 mb-8 h-auto p-1 gap-1">
+              <TabsTrigger value="services" className="text-xs sm:text-sm md:text-base px-2 py-2 h-auto leading-tight">
+                <span className="block">🔧</span>
+                <span className="block">الخدمات الأساسية</span>
+              </TabsTrigger>
+              <TabsTrigger value="student-links" className="text-xs sm:text-sm md:text-base px-2 py-2 h-auto leading-tight">
+                <span className="block">📎</span>
+                <span className="block">روابط الخدمات الطلابية</span>
+              </TabsTrigger>
+              <TabsTrigger value="discussion" className="text-xs sm:text-sm md:text-base px-2 py-2 h-auto leading-tight">
+                <span className="block">💬</span>
+                <span className="block">مجموعات النقاش</span>
+              </TabsTrigger>
+              <TabsTrigger value="announcements" className="text-xs sm:text-sm md:text-base px-2 py-2 h-auto leading-tight">
+                <span className="block">📢</span>
+                <span className="block">الإعلانات الأكاديمية</span>
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="services">
