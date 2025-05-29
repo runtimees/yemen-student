@@ -11,12 +11,12 @@ const NewsTicker = () => {
   return (
     <div className="bg-yemen-red text-white py-2 overflow-hidden relative">
       <div className="flex items-center">
-        <div className="bg-yemen-black text-white px-3 py-1 font-bold text-xs sm:text-sm md:text-base whitespace-nowrap flex-shrink-0">
+        <div className="bg-yemen-black text-white px-3 py-1 font-bold text-sm whitespace-nowrap flex-shrink-0">
           أخبار هامة
         </div>
         <div className="flex-1 relative overflow-hidden">
           <div className="animate-marquee whitespace-nowrap">
-            <span className="mx-4 text-xs sm:text-sm md:text-base">
+            <span className="mx-4 text-sm">
               {newsItems.join(" • ")}
             </span>
           </div>
