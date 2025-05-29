@@ -77,7 +77,7 @@ export const useRequestTracking = () => {
           searchTerm: cleanRequestNumber,
           searchTermBytes: Array.from(cleanRequestNumber).map(c => c.charCodeAt(0)),
           sampleFromDB: allRequests?.[0]?.request_number,
-          sampleBytes: allRequests?.[0]?.request_number ? Array.from(allRequests[0].request_number).map(c => c.charCodeAt(0)) : []
+          sampleBytes: allRequests?.[0]?.request_number ? Array.from(allRequests[0].request_number as string).map(c => c.charCodeAt(0)) : []
         });
       }
 
