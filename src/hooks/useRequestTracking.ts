@@ -45,18 +45,36 @@ export const useRequestTracking = () => {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       console.log('Current session:', { session: !!session, error: sessionError });
 
-      // Try direct query without RLS first to test if data exists
+      // First check if there are any requests in the database
+      const { count, error: countError } = await supabase
+        .from('requests')
+        .select('*', { count: 'exact', head: true });
+
+      console.log('Total requests in database:', { count, error: countError });
+
+      if (count === 0) {
+        console.log('Database appears to be empty');
+        // Get a sample of requests to verify
+        const { data: sampleData, error: sampleError } = await supabase
+          .from('requests')
+          .select('request_number')
+          .limit(5);
+        
+        console.log('Sample requests:', { data: sampleData, error: sampleError });
+      }
+
+      // Try to get the current user session
+      console.log('Trying RPC function first...');
       const { data: directData, error: directError } = await supabase
-        .rpc('get_request_by_number', { search_number: cleanRequestNumber })
-        .maybeSingle();
+        .rpc('get_request_by_number', { search_number: cleanRequestNumber });
 
       console.log('RPC call result:', { data: directData, error: directError });
 
-      // If RPC doesn't exist, try direct table access
+      // If RPC doesn't exist or fails, try direct table access
       if (directError && directError.message?.includes('function')) {
         console.log('RPC function not found, trying direct table access...');
         
-        // Try with explicit select to bypass RLS temporarily for testing
+        // Try exact match first
         const { data, error } = await supabase
           .from('requests')
           .select(`
@@ -85,6 +103,7 @@ export const useRequestTracking = () => {
 
         if (!data) {
           // Try case-insensitive search
+          console.log('Trying case-insensitive search...');
           const { data: caseInsensitiveData, error: caseError } = await supabase
             .from('requests')
             .select(`
@@ -116,7 +135,45 @@ export const useRequestTracking = () => {
             return true;
           }
 
-          toast.error(`لم يتم العثور على طلب بالرقم: ${cleanRequestNumber}. يرجى التأكد من صحة رقم الطلب.`);
+          // Try partial match search
+          console.log('Trying partial match search...');
+          const { data: partialData, error: partialError } = await supabase
+            .from('requests')
+            .select(`
+              request_number,
+              status,
+              service_type,
+              admin_notes,
+              submission_date,
+              created_at
+            `)
+            .ilike('request_number', `%${cleanRequestNumber}%`)
+            .limit(1)
+            .maybeSingle();
+
+          console.log('Partial match search result:', { data: partialData, error: partialError });
+
+          if (partialData) {
+            const requestInfo = {
+              request_number: partialData.request_number,
+              status: partialData.status,
+              service_type: partialData.service_type,
+              admin_notes: partialData.admin_notes,
+              submission_date: partialData.submission_date,
+              created_at: partialData.created_at
+            };
+
+            setRequestData(requestInfo);
+            setStatusTimeline(generateStatusTimeline(requestInfo));
+            setIsLoading(false);
+            return true;
+          }
+
+          if (count === 0) {
+            toast.error('لا توجد طلبات في النظام حالياً');
+          } else {
+            toast.error(`لم يتم العثور على طلب بالرقم: ${cleanRequestNumber}. يرجى التأكد من صحة رقم الطلب.`);
+          }
           setIsLoading(false);
           return false;
         }
@@ -138,15 +195,16 @@ export const useRequestTracking = () => {
         return true;
       }
 
-      // Handle RPC result
+      // Handle RPC result with proper type assertion
       if (directData) {
+        const typedData = directData as RequestData;
         const requestInfo = {
-          request_number: directData.request_number,
-          status: directData.status,
-          service_type: directData.service_type,
-          admin_notes: directData.admin_notes,
-          submission_date: directData.submission_date,
-          created_at: directData.created_at
+          request_number: typedData.request_number,
+          status: typedData.status,
+          service_type: typedData.service_type,
+          admin_notes: typedData.admin_notes,
+          submission_date: typedData.submission_date,
+          created_at: typedData.created_at
         };
 
         setRequestData(requestInfo);
