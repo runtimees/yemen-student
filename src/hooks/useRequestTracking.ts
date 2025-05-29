@@ -35,20 +35,22 @@ export const useRequestTracking = () => {
     try {
       console.log('Searching for request:', { requestNumber });
 
+      // Use maybeSingle() instead of single() to handle no results gracefully
       const { data, error } = await supabase
         .from('requests')
         .select('*')
         .eq('request_number', requestNumber)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error searching request:', error);
-        toast.error('لم يتم العثور على طلب بهذا الرقم');
+        toast.error('حدث خطأ أثناء البحث عن الطلب');
         setIsLoading(false);
         return false;
       }
 
       if (!data) {
+        console.log('No request found with number:', requestNumber);
         toast.error('لم يتم العثور على طلب بهذا الرقم');
         setIsLoading(false);
         return false;
