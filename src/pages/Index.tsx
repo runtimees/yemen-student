@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import FeatureCard from '@/components/home/FeatureCard';
-import NewsTicker from '@/components/home/NewsTicker';
 import NewsCarousel from '@/components/home/NewsCarousel';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -138,9 +137,6 @@ const Index = () => {
           </p>
         </div>
       </section>
-
-      {/* News Ticker */}
-      <NewsTicker />
 
       {/* News Carousel */}
       <NewsCarousel />
