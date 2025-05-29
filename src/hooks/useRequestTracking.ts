@@ -24,62 +24,43 @@ export const useRequestTracking = () => {
   const [requestData, setRequestData] = useState<RequestData | null>(null);
   const [statusTimeline, setStatusTimeline] = useState<StatusTimelineItem[]>([]);
 
-  const fetchRequestData = async (requestNumber: string, submissionDate: string): Promise<boolean> => {
-    if (!requestNumber || !submissionDate) {
-      toast.error('يرجى تعبئة جميع الحقول المطلوبة');
+  const fetchRequestData = async (requestNumber: string): Promise<boolean> => {
+    if (!requestNumber) {
+      toast.error('يرجى إدخال رقم الطلب');
       return false;
     }
 
     setIsLoading(true);
 
     try {
-      console.log('Searching for request:', { requestNumber, submissionDate });
+      console.log('Searching for request:', { requestNumber });
 
-      // First try to find by request number only
-      const { data: allRequests, error: searchError } = await supabase
+      const { data, error } = await supabase
         .from('requests')
         .select('*')
-        .eq('request_number', requestNumber);
+        .eq('request_number', requestNumber)
+        .single();
 
-      if (searchError) {
-        console.error('Error searching requests:', searchError);
-        toast.error('حدث خطأ أثناء البحث عن الطلب');
-        setIsLoading(false);
-        return false;
-      }
-
-      console.log('Found requests:', allRequests);
-
-      if (!allRequests || allRequests.length === 0) {
+      if (error) {
+        console.error('Error searching request:', error);
         toast.error('لم يتم العثور على طلب بهذا الرقم');
         setIsLoading(false);
         return false;
       }
 
-      // Filter by date on the client side for more flexibility
-      const targetDate = new Date(submissionDate);
-      const matchingRequest = allRequests.find(request => {
-        const requestDate = new Date(request.created_at);
-        const requestDateString = requestDate.toISOString().split('T')[0];
-        const targetDateString = targetDate.toISOString().split('T')[0];
-        
-        console.log('Comparing dates:', { requestDateString, targetDateString });
-        return requestDateString === targetDateString;
-      });
-
-      if (!matchingRequest) {
-        toast.error('لم يتم العثور على طلب بالبيانات المدخلة - تأكد من تاريخ التقديم');
+      if (!data) {
+        toast.error('لم يتم العثور على طلب بهذا الرقم');
         setIsLoading(false);
         return false;
       }
 
       const requestInfo = {
-        request_number: matchingRequest.request_number,
-        status: matchingRequest.status,
-        service_type: matchingRequest.service_type,
-        admin_notes: matchingRequest.admin_notes,
-        submission_date: matchingRequest.submission_date,
-        created_at: matchingRequest.created_at
+        request_number: data.request_number,
+        status: data.status,
+        service_type: data.service_type,
+        admin_notes: data.admin_notes,
+        submission_date: data.submission_date,
+        created_at: data.created_at
       };
 
       console.log('Request found:', requestInfo);

@@ -24,8 +24,8 @@ const TrackRequests = () => {
     setIsSignupOpen(true);
   };
 
-  const handleFormSubmit = async (requestNumber: string, submissionDate: string) => {
-    const success = await fetchRequestData(requestNumber, submissionDate);
+  const handleFormSubmit = async (requestNumber: string) => {
+    const success = await fetchRequestData(requestNumber);
     if (success) {
       setResultModalOpen(true);
     }

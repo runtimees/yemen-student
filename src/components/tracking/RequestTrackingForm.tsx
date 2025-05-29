@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 
 interface RequestTrackingFormProps {
-  onSubmit: (requestNumber: string, submissionDate: string) => Promise<void>;
+  onSubmit: (requestNumber: string) => Promise<void>;
   isLoading: boolean;
   isLoggedIn: boolean;
   onLoginRequired: () => void;
@@ -15,7 +15,6 @@ interface RequestTrackingFormProps {
 
 const RequestTrackingForm = ({ onSubmit, isLoading, isLoggedIn, onLoginRequired }: RequestTrackingFormProps) => {
   const [requestNumber, setRequestNumber] = useState('');
-  const [submissionDate, setSubmissionDate] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +23,7 @@ const RequestTrackingForm = ({ onSubmit, isLoading, isLoggedIn, onLoginRequired 
       return;
     }
     
-    await onSubmit(requestNumber, submissionDate);
+    await onSubmit(requestNumber);
   };
 
   return (
@@ -42,17 +41,6 @@ const RequestTrackingForm = ({ onSubmit, isLoading, isLoggedIn, onLoginRequired 
                 placeholder="أدخل رقم الطلب"
                 value={requestNumber}
                 onChange={(e) => setRequestNumber(e.target.value)}
-                required
-                className="w-full"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="submissionDate">تاريخ تقديم الطلب</Label>
-              <Input
-                id="submissionDate"
-                type="date"
-                value={submissionDate}
-                onChange={(e) => setSubmissionDate(e.target.value)}
                 required
                 className="w-full"
               />
