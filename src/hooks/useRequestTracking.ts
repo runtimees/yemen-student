@@ -41,6 +41,31 @@ export const useRequestTracking = () => {
         length: cleanRequestNumber.length 
       });
 
+      // First, let's check if there are ANY requests in the database
+      const { data: allRequestsCount, error: countError } = await supabase
+        .from('requests')
+        .select('id', { count: 'exact', head: true });
+
+      console.log('Total requests in database:', { count: allRequestsCount, error: countError });
+
+      if (countError) {
+        console.error('Error counting requests:', countError);
+        toast.error('حدث خطأ أثناء الاتصال بقاعدة البيانات');
+        setIsLoading(false);
+        return false;
+      }
+
+      // Get a sample of request numbers to debug
+      const { data: sampleRequests, error: sampleError } = await supabase
+        .from('requests')
+        .select('request_number')
+        .limit(5);
+
+      console.log('Sample request numbers in database:', { 
+        requests: sampleRequests,
+        error: sampleError 
+      });
+
       // Try exact match first
       let { data, error } = await supabase
         .from('requests')
@@ -64,21 +89,18 @@ export const useRequestTracking = () => {
         console.log('Case-insensitive search result:', { data, error });
       }
 
-      // If still no result, try a broader search to see if any similar requests exist
+      // If still no result, try partial match
       if (!data && !error) {
-        console.log('Trying broader search for debugging...');
-        const { data: allRequests, error: allError } = await supabase
+        console.log('Trying partial match search...');
+        const { data: partialData, error: partialError } = await supabase
           .from('requests')
-          .select('request_number')
-          .limit(10);
+          .select('*')
+          .ilike('request_number', `%${cleanRequestNumber}%`)
+          .maybeSingle();
         
-        console.log('Sample requests in database:', allRequests);
-        console.log('Search term comparison:', {
-          searchTerm: cleanRequestNumber,
-          searchTermBytes: Array.from(cleanRequestNumber).map(c => c.charCodeAt(0)),
-          sampleFromDB: allRequests?.[0]?.request_number,
-          sampleBytes: allRequests?.[0]?.request_number ? Array.from(allRequests[0].request_number as string).map(c => c.charCodeAt(0)) : []
-        });
+        data = partialData;
+        error = partialError;
+        console.log('Partial search result:', { data, error });
       }
 
       if (error) {
@@ -90,7 +112,14 @@ export const useRequestTracking = () => {
 
       if (!data) {
         console.log('No request found with number:', cleanRequestNumber);
-        toast.error('لم يتم العثور على طلب بهذا الرقم. يرجى التأكد من صحة رقم الطلب.');
+        
+        // Show detailed message based on database state
+        if (sampleRequests && sampleRequests.length === 0) {
+          toast.error('قاعدة البيانات فارغة. لا توجد طلبات في النظام حالياً.');
+        } else {
+          toast.error(`لم يتم العثور على طلب بالرقم: ${cleanRequestNumber}. يرجى التأكد من صحة رقم الطلب.`);
+        }
+        
         setIsLoading(false);
         return false;
       }
