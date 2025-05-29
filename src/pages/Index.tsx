@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import FeatureCard from '@/components/home/FeatureCard';
 import NewsTicker from '@/components/home/NewsTicker';
+import NewsCarousel from '@/components/home/NewsCarousel';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -140,6 +141,9 @@ const Index = () => {
 
       {/* News Ticker */}
       <NewsTicker />
+
+      {/* News Carousel */}
+      <NewsCarousel />
 
       {/* Features Section */}
       <section className="py-12 bg-gradient-to-b from-gray-50 to-white">
