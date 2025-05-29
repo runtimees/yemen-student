@@ -63,7 +63,7 @@ export const useRequestTracking = () => {
         console.log('Sample requests:', { data: sampleData, error: sampleError });
       }
 
-      // Try to get the current user session
+      // Try RPC function first
       console.log('Trying RPC function first...');
       const { data: directData, error: directError } = await supabase
         .rpc('get_request_by_number', { search_number: cleanRequestNumber });
@@ -120,7 +120,7 @@ export const useRequestTracking = () => {
           console.log('Case-insensitive search result:', { data: caseInsensitiveData, error: caseError });
 
           if (caseInsensitiveData) {
-            const requestInfo = {
+            const requestInfo: RequestData = {
               request_number: caseInsensitiveData.request_number,
               status: caseInsensitiveData.status,
               service_type: caseInsensitiveData.service_type,
@@ -129,6 +129,7 @@ export const useRequestTracking = () => {
               created_at: caseInsensitiveData.created_at
             };
 
+            console.log('Setting request data:', requestInfo);
             setRequestData(requestInfo);
             setStatusTimeline(generateStatusTimeline(requestInfo));
             setIsLoading(false);
@@ -154,7 +155,7 @@ export const useRequestTracking = () => {
           console.log('Partial match search result:', { data: partialData, error: partialError });
 
           if (partialData) {
-            const requestInfo = {
+            const requestInfo: RequestData = {
               request_number: partialData.request_number,
               status: partialData.status,
               service_type: partialData.service_type,
@@ -163,6 +164,7 @@ export const useRequestTracking = () => {
               created_at: partialData.created_at
             };
 
+            console.log('Setting request data:', requestInfo);
             setRequestData(requestInfo);
             setStatusTimeline(generateStatusTimeline(requestInfo));
             setIsLoading(false);
@@ -178,7 +180,7 @@ export const useRequestTracking = () => {
           return false;
         }
 
-        const requestInfo = {
+        const requestInfo: RequestData = {
           request_number: data.request_number,
           status: data.status,
           service_type: data.service_type,
@@ -187,26 +189,26 @@ export const useRequestTracking = () => {
           created_at: data.created_at
         };
 
-        console.log('Request found:', requestInfo);
-
+        console.log('Request found and setting data:', requestInfo);
         setRequestData(requestInfo);
         setStatusTimeline(generateStatusTimeline(requestInfo));
         setIsLoading(false);
         return true;
       }
 
-      // Handle RPC result with proper type assertion
-      if (directData) {
-        const typedData = directData as RequestData;
-        const requestInfo = {
-          request_number: typedData.request_number,
-          status: typedData.status,
-          service_type: typedData.service_type,
-          admin_notes: typedData.admin_notes,
-          submission_date: typedData.submission_date,
-          created_at: typedData.created_at
+      // Handle RPC result
+      if (directData && directData.length > 0) {
+        const data = directData[0];
+        const requestInfo: RequestData = {
+          request_number: data.request_number,
+          status: data.status,
+          service_type: data.service_type,
+          admin_notes: data.admin_notes,
+          submission_date: data.submission_date,
+          created_at: data.created_at
         };
 
+        console.log('RPC result - setting request data:', requestInfo);
         setRequestData(requestInfo);
         setStatusTimeline(generateStatusTimeline(requestInfo));
         setIsLoading(false);
