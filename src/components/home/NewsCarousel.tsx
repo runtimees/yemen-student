@@ -22,9 +22,15 @@ interface NewsItem {
 const NewsCarousel = () => {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const plugin = React.useRef(
-    Autoplay({ delay: 5000, stopOnInteraction: true })
+    Autoplay({ 
+      delay: 4000, 
+      stopOnInteraction: false,
+      stopOnMouseEnter: true,
+      playOnInit: true
+    })
   );
 
   useEffect(() => {
@@ -37,14 +43,14 @@ const NewsCarousel = () => {
         .from('news')
         .select('*')
         .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .limit(6);
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching news:', error);
         return;
       }
 
+      console.log('Fetched news:', data);
       setNews(data || []);
     } catch (error) {
       console.error('Error:', error);
@@ -86,16 +92,19 @@ const NewsCarousel = () => {
           <Carousel
             plugins={[plugin.current]}
             className="w-full"
-            onMouseEnter={plugin.current.stop}
-            onMouseLeave={plugin.current.reset}
             opts={{
               align: "start",
               loop: true,
+              direction: "rtl",
+              skipSnaps: false,
+              containScroll: "trimSnaps"
             }}
+            onMouseEnter={() => plugin.current.stop()}
+            onMouseLeave={() => plugin.current.play()}
           >
             <CarouselContent className="-ml-2 md:-ml-4">
-              {news.map((item) => (
-                <CarouselItem key={item.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3">
+              {news.map((item, index) => (
+                <CarouselItem key={item.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
                   <Card className="h-full bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300">
                     <CardContent className="p-4 md:p-6 h-full flex flex-col">
                       <div className="aspect-video rounded-lg overflow-hidden mb-4 bg-white/20">
@@ -104,6 +113,7 @@ const NewsCarousel = () => {
                             src={item.image_url}
                             alt={item.title}
                             className="w-full h-full object-cover"
+                            loading="lazy"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-white/60">
@@ -140,16 +150,21 @@ const NewsCarousel = () => {
               ))}
             </CarouselContent>
             
-            <CarouselPrevious className="hidden sm:flex -left-4 md:-left-6 bg-white/20 border-white/30 text-white hover:bg-white/30 hover:text-white" />
-            <CarouselNext className="hidden sm:flex -right-4 md:-right-6 bg-white/20 border-white/30 text-white hover:bg-white/30 hover:text-white" />
+            {/* Navigation arrows - visible on all screen sizes */}
+            <CarouselPrevious className="absolute -left-4 md:-left-6 top-1/2 -translate-y-1/2 bg-white/20 border-white/30 text-white hover:bg-white/30 hover:text-white z-10 h-10 w-10" />
+            <CarouselNext className="absolute -right-4 md:-right-6 top-1/2 -translate-y-1/2 bg-white/20 border-white/30 text-white hover:bg-white/30 hover:text-white z-10 h-10 w-10" />
           </Carousel>
           
-          {/* Mobile navigation dots */}
-          <div className="flex sm:hidden justify-center mt-6 space-x-2">
+          {/* Progress indicators */}
+          <div className="flex justify-center mt-6 space-x-2 rtl:space-x-reverse">
             {news.map((_, index) => (
               <div
                 key={index}
-                className="w-2 h-2 rounded-full bg-white/40"
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  index === currentSlide % news.length 
+                    ? 'bg-white scale-110' 
+                    : 'bg-white/40 hover:bg-white/60'
+                }`}
               />
             ))}
           </div>
