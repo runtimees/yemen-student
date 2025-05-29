@@ -21,6 +21,19 @@ interface RequestResultModalProps {
 const RequestResultModal = ({ open, onOpenChange, requestData }: RequestResultModalProps) => {
   console.log('RequestResultModal - requestData:', requestData);
 
+  // Function to get the display status based on admin notes
+  const getDisplayStatus = () => {
+    if (!requestData) return 'غير متوفر';
+    
+    // If admin notes exist and are not empty, use them as the status
+    if (requestData.admin_notes && requestData.admin_notes.trim() !== '') {
+      return requestData.admin_notes;
+    }
+    
+    // If admin notes are empty, show default message
+    return 'لم يتم النظر في الطلب بعد';
+  };
+
   if (!requestData) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -97,23 +110,16 @@ const RequestResultModal = ({ open, onOpenChange, requestData }: RequestResultMo
                   </div>
                 </div>
 
-                {/* Current Order Status */}
+                {/* Current Order Status from Admin Notes */}
                 <div className="mt-4 p-3 bg-white border border-gray-300 rounded">
                   <label className="block text-sm font-medium text-gray-700 mb-2">حالة الطلب:</label>
-                  <div className="w-full p-2 border border-gray-300 rounded bg-gray-50">
-                    {requestData.status ? 
-                      translateStatus(requestData.status) : 
-                      'غير متوفر'
-                    }
+                  <div className="w-full p-3 border border-gray-300 rounded bg-gray-50 min-h-[50px]">
+                    <span className={`${!requestData.admin_notes || requestData.admin_notes.trim() === '' ? 'text-orange-600 font-medium' : 'text-gray-900'}`}>
+                      {getDisplayStatus()}
+                    </span>
                   </div>
                 </div>
               </div>
-              
-              {requestData.admin_notes && (
-                <div className="mt-3 p-2 bg-yellow-50 rounded border border-yellow-200">
-                  <p><strong>ملاحظات:</strong> {requestData.admin_notes}</p>
-                </div>
-              )}
             </div>
           </div>
           
