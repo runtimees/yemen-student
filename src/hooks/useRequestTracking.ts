@@ -33,35 +33,56 @@ export const useRequestTracking = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase
+      console.log('Searching for request:', { requestNumber, submissionDate });
+
+      // First try to find by request number only
+      const { data: allRequests, error: searchError } = await supabase
         .from('requests')
         .select('*')
-        .eq('request_number', requestNumber)
-        .gte('created_at', `${submissionDate}T00:00:00`)
-        .lt('created_at', `${submissionDate}T23:59:59`)
-        .single();
+        .eq('request_number', requestNumber);
 
-      if (error) {
-        console.error('Error fetching request:', error);
-        toast.error('لم يتم العثور على طلب بالبيانات المدخلة');
+      if (searchError) {
+        console.error('Error searching requests:', searchError);
+        toast.error('حدث خطأ أثناء البحث عن الطلب');
         setIsLoading(false);
         return false;
       }
 
-      if (!data) {
-        toast.error('لم يتم العثور على طلب بالبيانات المدخلة');
+      console.log('Found requests:', allRequests);
+
+      if (!allRequests || allRequests.length === 0) {
+        toast.error('لم يتم العثور على طلب بهذا الرقم');
+        setIsLoading(false);
+        return false;
+      }
+
+      // Filter by date on the client side for more flexibility
+      const targetDate = new Date(submissionDate);
+      const matchingRequest = allRequests.find(request => {
+        const requestDate = new Date(request.created_at);
+        const requestDateString = requestDate.toISOString().split('T')[0];
+        const targetDateString = targetDate.toISOString().split('T')[0];
+        
+        console.log('Comparing dates:', { requestDateString, targetDateString });
+        return requestDateString === targetDateString;
+      });
+
+      if (!matchingRequest) {
+        toast.error('لم يتم العثور على طلب بالبيانات المدخلة - تأكد من تاريخ التقديم');
         setIsLoading(false);
         return false;
       }
 
       const requestInfo = {
-        request_number: data.request_number,
-        status: data.status,
-        service_type: data.service_type,
-        admin_notes: data.admin_notes,
-        submission_date: data.submission_date,
-        created_at: data.created_at
+        request_number: matchingRequest.request_number,
+        status: matchingRequest.status,
+        service_type: matchingRequest.service_type,
+        admin_notes: matchingRequest.admin_notes,
+        submission_date: matchingRequest.submission_date,
+        created_at: matchingRequest.created_at
       };
+
+      console.log('Request found:', requestInfo);
 
       setRequestData(requestInfo);
       setStatusTimeline(generateStatusTimeline(requestInfo));
