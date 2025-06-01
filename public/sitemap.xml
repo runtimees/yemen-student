@@ -1,0 +1,60 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <!-- Homepage -->
+  <url>
+    <loc>https://yemeni-student-najd.org/</loc>
+    <lastmod>2025-06-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://yemeni-student-najd.org/" />
+  </url>
+  
+  <!-- Services Page -->
+  <url>
+    <loc>https://yemeni-student-najd.org/services</loc>
+    <lastmod>2025-06-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://yemeni-student-najd.org/services" />
+  </url>
+  
+  <!-- Track Requests Page -->
+  <url>
+    <loc>https://yemeni-student-najd.org/track</loc>
+    <lastmod>2025-06-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://yemeni-student-najd.org/track" />
+  </url>
+  
+  <!-- Vision Page -->
+  <url>
+    <loc>https://yemeni-student-najd.org/vision</loc>
+    <lastmod>2025-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://yemeni-student-najd.org/vision" />
+  </url>
+  
+  <!-- Study Iraq Page -->
+  <url>
+    <loc>https://yemeni-student-najd.org/study-iraq</loc>
+    <lastmod>2025-06-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://yemeni-student-najd.org/study-iraq" />
+  </url>
+  
+  <!-- Student Library Page -->
+  <url>
+    <loc>https://yemeni-student-najd.org/student-library</loc>
+    <lastmod>2025-06-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://yemeni-student-najd.org/student-library" />
+  </url>
+  
+</urlset>
