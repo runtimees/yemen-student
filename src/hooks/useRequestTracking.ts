@@ -31,6 +31,9 @@ export const useRequestTracking = () => {
     }
 
     setIsLoading(true);
+    // Clear previous data to ensure fresh fetch
+    setRequestData(null);
+    setStatusTimeline([]);
 
     try {
       // Clean the request number (trim whitespace and normalize case)
@@ -41,41 +44,37 @@ export const useRequestTracking = () => {
         length: cleanRequestNumber.length 
       });
 
-      // Try to get the current user session
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      console.log('Current session:', { session: !!session, error: sessionError });
-
-      // First check if there are any requests in the database
-      const { count, error: countError } = await supabase
+      // Force fresh data by disabling cache and ensuring we get the latest data
+      const { data, error } = await supabase
         .from('requests')
-        .select('*', { count: 'exact', head: true });
+        .select(`
+          request_number,
+          status,
+          service_type,
+          admin_notes,
+          submission_date,
+          created_at
+        `)
+        .eq('request_number', cleanRequestNumber)
+        .maybeSingle();
 
-      console.log('Total requests in database:', { count, error: countError });
+      console.log('Direct table query result:', { data, error });
 
-      if (count === 0) {
-        console.log('Database appears to be empty');
-        // Get a sample of requests to verify
-        const { data: sampleData, error: sampleError } = await supabase
-          .from('requests')
-          .select('request_number')
-          .limit(5);
-        
-        console.log('Sample requests:', { data: sampleData, error: sampleError });
+      if (error) {
+        console.error('Database error:', error);
+        if (error.message.includes('RLS')) {
+          toast.error('خطأ في صلاحيات الوصول. يرجى المحاولة مرة أخرى.');
+        } else {
+          toast.error('حدث خطأ أثناء البحث عن الطلب');
+        }
+        setIsLoading(false);
+        return false;
       }
 
-      // Try RPC function first
-      console.log('Trying RPC function first...');
-      const { data: directData, error: directError } = await supabase
-        .rpc('get_request_by_number', { search_number: cleanRequestNumber });
-
-      console.log('RPC call result:', { data: directData, error: directError });
-
-      // If RPC doesn't exist or fails, try direct table access
-      if (directError && directError.message?.includes('function')) {
-        console.log('RPC function not found, trying direct table access...');
-        
-        // Try exact match first
-        const { data, error } = await supabase
+      if (!data) {
+        // Try case-insensitive search
+        console.log('Trying case-insensitive search...');
+        const { data: caseInsensitiveData, error: caseError } = await supabase
           .from('requests')
           .select(`
             request_number,
@@ -85,139 +84,47 @@ export const useRequestTracking = () => {
             submission_date,
             created_at
           `)
-          .eq('request_number', cleanRequestNumber)
+          .ilike('request_number', cleanRequestNumber)
           .maybeSingle();
 
-        console.log('Direct table query result:', { data, error });
+        console.log('Case-insensitive search result:', { data: caseInsensitiveData, error: caseError });
 
-        if (error) {
-          console.error('Database error:', error);
-          if (error.message.includes('RLS')) {
-            toast.error('خطأ في صلاحيات الوصول. يرجى المحاولة مرة أخرى.');
-          } else {
-            toast.error('حدث خطأ أثناء البحث عن الطلب');
-          }
+        if (caseInsensitiveData) {
+          const requestInfo: RequestData = {
+            request_number: caseInsensitiveData.request_number,
+            status: caseInsensitiveData.status,
+            service_type: caseInsensitiveData.service_type,
+            admin_notes: caseInsensitiveData.admin_notes,
+            submission_date: caseInsensitiveData.submission_date,
+            created_at: caseInsensitiveData.created_at
+          };
+
+          console.log('Setting request data:', requestInfo);
+          setRequestData(requestInfo);
+          setStatusTimeline(generateStatusTimeline(requestInfo));
           setIsLoading(false);
-          return false;
+          return true;
         }
 
-        if (!data) {
-          // Try case-insensitive search
-          console.log('Trying case-insensitive search...');
-          const { data: caseInsensitiveData, error: caseError } = await supabase
-            .from('requests')
-            .select(`
-              request_number,
-              status,
-              service_type,
-              admin_notes,
-              submission_date,
-              created_at
-            `)
-            .ilike('request_number', cleanRequestNumber)
-            .maybeSingle();
-
-          console.log('Case-insensitive search result:', { data: caseInsensitiveData, error: caseError });
-
-          if (caseInsensitiveData) {
-            const requestInfo: RequestData = {
-              request_number: caseInsensitiveData.request_number,
-              status: caseInsensitiveData.status,
-              service_type: caseInsensitiveData.service_type,
-              admin_notes: caseInsensitiveData.admin_notes,
-              submission_date: caseInsensitiveData.submission_date,
-              created_at: caseInsensitiveData.created_at
-            };
-
-            console.log('Setting request data:', requestInfo);
-            setRequestData(requestInfo);
-            setStatusTimeline(generateStatusTimeline(requestInfo));
-            setIsLoading(false);
-            return true;
-          }
-
-          // Try partial match search
-          console.log('Trying partial match search...');
-          const { data: partialData, error: partialError } = await supabase
-            .from('requests')
-            .select(`
-              request_number,
-              status,
-              service_type,
-              admin_notes,
-              submission_date,
-              created_at
-            `)
-            .ilike('request_number', `%${cleanRequestNumber}%`)
-            .limit(1)
-            .maybeSingle();
-
-          console.log('Partial match search result:', { data: partialData, error: partialError });
-
-          if (partialData) {
-            const requestInfo: RequestData = {
-              request_number: partialData.request_number,
-              status: partialData.status,
-              service_type: partialData.service_type,
-              admin_notes: partialData.admin_notes,
-              submission_date: partialData.submission_date,
-              created_at: partialData.created_at
-            };
-
-            console.log('Setting request data:', requestInfo);
-            setRequestData(requestInfo);
-            setStatusTimeline(generateStatusTimeline(requestInfo));
-            setIsLoading(false);
-            return true;
-          }
-
-          if (count === 0) {
-            toast.error('لا توجد طلبات في النظام حالياً');
-          } else {
-            toast.error(`لم يتم العثور على طلب بالرقم: ${cleanRequestNumber}. يرجى التأكد من صحة رقم الطلب.`);
-          }
-          setIsLoading(false);
-          return false;
-        }
-
-        const requestInfo: RequestData = {
-          request_number: data.request_number,
-          status: data.status,
-          service_type: data.service_type,
-          admin_notes: data.admin_notes,
-          submission_date: data.submission_date,
-          created_at: data.created_at
-        };
-
-        console.log('Request found and setting data:', requestInfo);
-        setRequestData(requestInfo);
-        setStatusTimeline(generateStatusTimeline(requestInfo));
+        toast.error(`لم يتم العثور على طلب بالرقم: ${cleanRequestNumber}. يرجى التأكد من صحة رقم الطلب.`);
         setIsLoading(false);
-        return true;
+        return false;
       }
 
-      // Handle RPC result
-      if (directData && directData.length > 0) {
-        const data = directData[0];
-        const requestInfo: RequestData = {
-          request_number: data.request_number,
-          status: data.status,
-          service_type: data.service_type,
-          admin_notes: data.admin_notes,
-          submission_date: data.submission_date,
-          created_at: data.created_at
-        };
+      const requestInfo: RequestData = {
+        request_number: data.request_number,
+        status: data.status,
+        service_type: data.service_type,
+        admin_notes: data.admin_notes,
+        submission_date: data.submission_date,
+        created_at: data.created_at
+      };
 
-        console.log('RPC result - setting request data:', requestInfo);
-        setRequestData(requestInfo);
-        setStatusTimeline(generateStatusTimeline(requestInfo));
-        setIsLoading(false);
-        return true;
-      }
-
-      toast.error(`لم يتم العثور على طلب بالرقم: ${cleanRequestNumber}. يرجى التأكد من صحة رقم الطلب.`);
+      console.log('Request found and setting data:', requestInfo);
+      setRequestData(requestInfo);
+      setStatusTimeline(generateStatusTimeline(requestInfo));
       setIsLoading(false);
-      return false;
+      return true;
 
     } catch (error) {
       console.error('Unexpected error:', error);

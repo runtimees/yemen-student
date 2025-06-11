@@ -33,7 +33,7 @@ const ServiceForm = () => {
   };
 
   if (!user) {
-    return <LoginPrompt />;
+    return <LoginPrompt onClose={() => {}} />;
   }
 
   if (isSubmitted) {
@@ -57,7 +57,6 @@ const ServiceForm = () => {
               <PersonalInfoFields
                 formData={formData}
                 setFormData={setFormData}
-                serviceType={serviceType}
               />
 
               <FileUploadField
@@ -79,7 +78,6 @@ const ServiceForm = () => {
 
               <FormActions
                 isSubmitting={isSubmitting}
-                onCancel={handleBackToServices}
               />
             </form>
           </CardContent>

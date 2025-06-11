@@ -65,16 +65,25 @@ const RequestsManagement = () => {
 
   const updateRequest = async (requestId: string, updates: any) => {
     try {
+      console.log('Updating request:', requestId, updates);
+      
       const { error } = await supabase
         .from('requests')
         .update(updates)
         .eq('id', requestId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating request:', error);
+        throw error;
+      }
       
       toast.success('تم تحديث الطلب بنجاح');
-      fetchRequests();
+      
+      // Refresh the requests list to show updated data
+      await fetchRequests();
       setSelectedRequest(null);
+      
+      console.log('Request updated successfully');
     } catch (error) {
       console.error('Error updating request:', error);
       toast.error('خطأ في تحديث الطلب');

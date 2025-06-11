@@ -2,6 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { translateServiceType, translateStatus } from '@/utils/requestUtils';
+import { Badge } from '@/components/ui/badge';
 
 interface RequestData {
   request_number: string;
@@ -21,17 +22,38 @@ interface RequestResultModalProps {
 const RequestResultModal = ({ open, onOpenChange, requestData }: RequestResultModalProps) => {
   console.log('RequestResultModal - requestData:', requestData);
 
-  // Function to get the display status based on admin notes
+  // Function to get the status color based on the current status
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'submitted': return 'bg-blue-100 text-blue-800';
+      case 'under_review': return 'bg-yellow-100 text-yellow-800';
+      case 'processing': return 'bg-orange-100 text-orange-800';
+      case 'approved': return 'bg-green-100 text-green-800';
+      case 'rejected': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Function to get the display status with admin notes
   const getDisplayStatus = () => {
     if (!requestData) return 'غير متوفر';
     
-    // If admin notes exist and are not empty, use them as the status
+    // Show the translated status
+    const translatedStatus = translateStatus(requestData.status);
+    
+    // If admin notes exist and are not empty, show them as additional information
     if (requestData.admin_notes && requestData.admin_notes.trim() !== '') {
-      return requestData.admin_notes;
+      return {
+        status: translatedStatus,
+        notes: requestData.admin_notes
+      };
     }
     
-    // If admin notes are empty, show default message
-    return 'لم يتم النظر في الطلب بعد';
+    // If no admin notes, just show the status
+    return {
+      status: translatedStatus,
+      notes: null
+    };
   };
 
   if (!requestData) {
@@ -53,6 +75,8 @@ const RequestResultModal = ({ open, onOpenChange, requestData }: RequestResultMo
       </Dialog>
     );
   }
+
+  const statusInfo = getDisplayStatus();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -93,6 +117,21 @@ const RequestResultModal = ({ open, onOpenChange, requestData }: RequestResultMo
                 </p>
               </div>
               
+              <div className="p-2 bg-white border border-gray-300 rounded">
+                <p className="text-sm font-medium text-gray-700 mb-1">حالة الطلب:</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge className={getStatusColor(requestData.status)}>
+                    {statusInfo.status}
+                  </Badge>
+                </div>
+                {statusInfo.notes && (
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
+                    <p className="text-sm font-medium text-blue-700 mb-1">ملاحظات الإدارة:</p>
+                    <p className="text-blue-800">{statusInfo.notes}</p>
+                  </div>
+                )}
+              </div>
+              
               <div className="mt-4">
                 {/* Order Received Status */}
                 <div className="flex items-center mb-3">
@@ -107,16 +146,6 @@ const RequestResultModal = ({ open, onOpenChange, requestData }: RequestResultMo
                         'غير متوفر'
                       }
                     </p>
-                  </div>
-                </div>
-
-                {/* Current Order Status from Admin Notes */}
-                <div className="mt-4 p-3 bg-white border border-gray-300 rounded">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">حالة الطلب:</label>
-                  <div className="w-full p-3 border border-gray-300 rounded bg-gray-50 min-h-[50px]">
-                    <span className={`${!requestData.admin_notes || requestData.admin_notes.trim() === '' ? 'text-orange-600 font-medium' : 'text-gray-900'}`}>
-                      {getDisplayStatus()}
-                    </span>
                   </div>
                 </div>
               </div>
