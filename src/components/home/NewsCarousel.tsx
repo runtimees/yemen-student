@@ -8,6 +8,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { supabase } from '@/integrations/supabase/client';
 import Autoplay from "embla-carousel-autoplay";
 
@@ -23,6 +24,7 @@ const NewsCarousel = () => {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
   const plugin = React.useRef(
     Autoplay({ 
@@ -58,6 +60,20 @@ const NewsCarousel = () => {
       setLoading(false);
     }
   };
+
+  const toggleExpanded = (itemId: string) => {
+    setExpandedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
+  };
+
+  const isTextLong = (text: string) => text.length > 150;
 
   if (loading) {
     return (
@@ -103,51 +119,72 @@ const NewsCarousel = () => {
             onMouseLeave={() => plugin.current.play()}
           >
             <CarouselContent className="-ml-2 md:-ml-4">
-              {news.map((item, index) => (
-                <CarouselItem key={item.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
-                  <Card className="h-full bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300">
-                    <CardContent className="p-4 md:p-6 h-full flex flex-col">
-                      <div className="aspect-video rounded-lg overflow-hidden mb-4 bg-white/20">
-                        {item.image_url ? (
-                          <img
-                            src={item.image_url}
-                            alt={item.title}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-white/60">
-                            <div className="text-center">
-                              <div className="text-3xl md:text-4xl mb-2">📰</div>
-                              <div className="text-sm">صورة الخبر</div>
+              {news.map((item, index) => {
+                const isExpanded = expandedItems.has(item.id);
+                const shouldShowReadMore = isTextLong(item.content);
+                const displayContent = isExpanded || !shouldShowReadMore 
+                  ? item.content 
+                  : item.content.substring(0, 150) + '...';
+
+                return (
+                  <CarouselItem key={item.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                    <Card className="h-full bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300">
+                      <CardContent className="p-4 md:p-6 h-full flex flex-col">
+                        <div className="aspect-video rounded-lg overflow-hidden mb-4 bg-white/20">
+                          {item.image_url ? (
+                            <img
+                              src={item.image_url}
+                              alt={item.title}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-white/60">
+                              <div className="text-center">
+                                <div className="text-3xl md:text-4xl mb-2">📰</div>
+                                <div className="text-sm">صورة الخبر</div>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex-1 flex flex-col">
-                        <h3 className="text-lg md:text-xl font-bold text-white mb-3 line-clamp-2">
-                          {item.title}
-                        </h3>
-                        
-                        <p className="text-white/90 text-sm md:text-base leading-relaxed flex-1 line-clamp-3">
-                          {item.content}
-                        </p>
-                        
-                        <div className="mt-4 pt-4 border-t border-white/20">
-                          <span className="text-white/70 text-xs md:text-sm">
-                            {new Date(item.created_at).toLocaleDateString('ar-SA', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
-                          </span>
+                          )}
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </CarouselItem>
-              ))}
+                        
+                        <div className="flex-1 flex flex-col">
+                          <h3 className="text-lg md:text-xl font-bold text-white mb-3 line-clamp-2">
+                            {item.title}
+                          </h3>
+                          
+                          <div className="flex-1 flex flex-col">
+                            <p className="text-white/90 text-sm md:text-base leading-relaxed">
+                              {displayContent}
+                            </p>
+                            
+                            {shouldShowReadMore && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleExpanded(item.id)}
+                                className="mt-2 text-white/80 hover:text-white hover:bg-white/20 self-start p-0 h-auto font-normal"
+                              >
+                                {isExpanded ? 'عرض أقل' : 'اقرأ المزيد'}
+                              </Button>
+                            )}
+                          </div>
+                          
+                          <div className="mt-4 pt-4 border-t border-white/20">
+                            <span className="text-white/70 text-xs md:text-sm">
+                              {new Date(item.created_at).toLocaleDateString('ar-SA', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </CarouselItem>
+                );
+              })}
             </CarouselContent>
             
             {/* Navigation arrows - visible on all screen sizes */}
