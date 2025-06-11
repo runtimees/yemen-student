@@ -37,11 +37,11 @@ const Header = () => {
           <div className="flex items-center justify-between">
             {/* Right side - Logo and title */}
             <div className="flex items-center space-x-3 space-x-reverse">
-              <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden">
                 <img 
-                  src="/lovable-uploads/05b08c22-59fb-417a-bc55-6e073052167c.png" 
-                  alt="Logo" 
-                  className="w-8 h-8 object-contain"
+                  src="/lovable-uploads/16a33781-4ccb-4bab-b178-8ffe4a635647.png" 
+                  alt="شعار منصة نجد" 
+                  className="w-full h-full object-cover"
                 />
               </div>
               <h1 className="text-lg font-bold">منصة الطلبة اليمنيين في العراق "نجد"</h1>
