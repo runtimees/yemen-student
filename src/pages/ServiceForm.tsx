@@ -1,11 +1,11 @@
 
 import { useServiceForm } from '@/hooks/useServiceForm';
-import { ServiceFormHeader } from '@/components/forms/ServiceFormHeader';
-import { PersonalInfoFields } from '@/components/forms/PersonalInfoFields';
-import { FileUploadField } from '@/components/forms/FileUploadField';
-import { FormActions } from '@/components/forms/FormActions';
-import { SubmissionSuccess } from '@/components/forms/SubmissionSuccess';
-import { LoginPrompt } from '@/components/auth/LoginPrompt';
+import ServiceFormHeader from '@/components/forms/ServiceFormHeader';
+import PersonalInfoFields from '@/components/forms/PersonalInfoFields';
+import FileUploadField from '@/components/forms/FileUploadField';
+import FormActions from '@/components/forms/FormActions';
+import SubmissionSuccess from '@/components/forms/SubmissionSuccess';
+import LoginPrompt from '@/components/auth/LoginPrompt';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
