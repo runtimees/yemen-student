@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { User as UserProfile } from '@/types/database';
-import { loginUser, signupUser, logoutUser } from '@/services/authService';
+import { useToast } from '@/components/ui/use-toast';
 
 interface AuthContextType {
   user: SupabaseUser | null;
@@ -40,13 +40,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   const isAuthenticated = !!user && !!session;
 
   useEffect(() => {
-    // Set up auth state listener
+    console.log("Setting up auth state listener in AuthContext");
+    
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed in AuthContext:', event, session?.user?.id);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -61,6 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 .single();
               
               if (profile) {
+                console.log('User profile found and set in AuthContext');
                 setUserProfile({
                   id: parseInt(profile.id),
                   full_name_ar: profile.full_name_ar || '',
@@ -72,9 +77,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   profile_picture_url: profile.profile_picture_url || undefined,
                   created_at: profile.created_at
                 });
+                
+                toast({
+                  title: "تم تسجيل الدخول بنجاح",
+                  description: `مرحباً بك ${profile.full_name_ar}`,
+                });
               }
             } catch (error) {
-              console.error('Error fetching user profile:', error);
+              console.error('Error fetching user profile in AuthContext:', error);
             }
           }, 0);
         } else {
@@ -85,23 +95,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // Check for existing session
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Checking for existing session in AuthContext:', session ? 'Found' : 'None');
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [toast]);
 
   const handleLogin = async (email: string, password: string): Promise<boolean> => {
-    const result = await loginUser(email, password);
-    if (result.success && result.userProfile) {
-      setUserProfile(result.userProfile);
+    try {
+      console.log('Attempting login for email:', email);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      
+      if (error || !data.user) {
+        console.error('Login error:', error);
+        toast({
+          title: "فشل تسجيل الدخول",
+          description: error?.message || "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      console.log('Login successful');
       return true;
+    } catch (error) {
+      console.error("Login error:", error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء محاولة تسجيل الدخول",
+        variant: "destructive",
+      });
+      return false;
     }
-    return false;
   };
 
   const handleSignup = async (
@@ -112,19 +146,77 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     phoneNumber?: string,
     residenceStatus?: string
   ): Promise<boolean> => {
-    const result = await signupUser(nameAr, email, password, nameEn, phoneNumber, residenceStatus);
-    if (result.success && result.userProfile) {
-      setUserProfile(result.userProfile);
+    try {
+      console.log("Starting signup process", { nameAr, nameEn, email, phoneNumber, residenceStatus });
+      
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name_ar: nameAr,
+            full_name_en: nameEn || nameAr,
+            full_name: nameAr,
+            name: nameAr,
+            phone_number: phoneNumber,
+            residence_status: residenceStatus
+          }
+        }
+      });
+      
+      if (error || !data.user) {
+        console.error("Signup error:", error);
+        toast({
+          title: "فشل إنشاء الحساب",
+          description: error?.message || "حدث خطأ أثناء إنشاء الحساب",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      console.log("Signup successful");
+      toast({
+        title: "تم إنشاء الحساب بنجاح",
+        description: "مرحباً بك في منصة الطلبة اليمنيين",
+      });
+      
       return true;
+    } catch (error) {
+      console.error("Signup error:", error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء محاولة إنشاء الحساب",
+        variant: "destructive",
+      });
+      return false;
     }
-    return false;
   };
 
   const handleLogout = async (): Promise<void> => {
-    await logoutUser();
-    setUser(null);
-    setUserProfile(null);
-    setSession(null);
+    try {
+      console.log("Logging out user");
+      await supabase.auth.signOut();
+      setUser(null);
+      setUserProfile(null);
+      setSession(null);
+      
+      toast({
+        title: "تم تسجيل الخروج",
+        description: "تم تسجيل خروجك بنجاح",
+      });
+      
+      console.log("Logout successful");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "خطأ",
+        description: "حدث خطأ أثناء تسجيل الخروج",
+        variant: "destructive",
+      });
+    }
   };
 
   const value = {

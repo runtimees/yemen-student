@@ -25,6 +25,8 @@ const LoginForm = ({ open, onOpenChange, onSwitchToSignup }: LoginFormProps) => 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Login form submitted', { email });
+    
     if (!isCaptchaVerified) {
       toast({
         title: "التحقق مطلوب",
@@ -34,21 +36,31 @@ const LoginForm = ({ open, onOpenChange, onSwitchToSignup }: LoginFormProps) => 
       return;
     }
     
+    if (!email || !password) {
+      toast({
+        title: "خطأ في البيانات",
+        description: "يرجى إدخال البريد الإلكتروني وكلمة المرور",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
+      console.log('Calling login function');
       const success = await login(email, password);
       
       if (success) {
+        console.log('Login successful, closing modal');
         onOpenChange(false);
-      } else {
-        toast({
-          title: "فشل تسجيل الدخول",
-          description: "البريد الإلكتروني أو كلمة المرور غير صحيحة",
-          variant: "destructive",
-        });
+        // Reset form
+        setEmail('');
+        setPassword('');
+        setIsCaptchaVerified(false);
       }
     } catch (error) {
+      console.error('Login form error:', error);
       toast({
         title: "خطأ",
         description: "حدث خطأ أثناء محاولة تسجيل الدخول",
@@ -60,6 +72,7 @@ const LoginForm = ({ open, onOpenChange, onSwitchToSignup }: LoginFormProps) => 
   };
 
   const handleCaptchaVerify = (verified: boolean) => {
+    console.log('Captcha verification:', verified);
     setIsCaptchaVerified(verified);
   };
 
@@ -100,7 +113,7 @@ const LoginForm = ({ open, onOpenChange, onSwitchToSignup }: LoginFormProps) => 
           <Button 
             type="submit" 
             className="w-full bg-yemen-red hover:bg-red-700"
-            disabled={isLoading}
+            disabled={isLoading || !isCaptchaVerified}
           >
             {isLoading ? "جاري تسجيل الدخول..." : "دخول"}
           </Button>
