@@ -3,59 +3,53 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { getFileFieldLabel, getFileAcceptType, validateFileSize } from './ServiceFormConstants';
+import FileUpload from '@/components/ui/file-upload';
 
 interface FileUploadFieldProps {
   serviceType: string;
   onFileChange: (field: string, file: File | null) => void;
+  onUrlChange: (field: string, url: string) => void;
 }
 
-const FileUploadField = ({ serviceType, onFileChange }: FileUploadFieldProps) => {
+const FileUploadField = ({ serviceType, onFileChange, onUrlChange }: FileUploadFieldProps) => {
   const { toast } = useToast();
 
-  const handleFileChange = (file: File | null) => {
-    if (file) {
-      console.log('Selected file details:', {
-        name: file.name,
-        size: file.size,
-        sizeMB: (file.size / 1024 / 1024).toFixed(2),
-        type: file.type
-      });
-
-      if (!validateFileSize(file)) {
-        toast({
-          title: "خطأ في حجم الملف",
-          description: `حجم الملف ${(file.size / 1024 / 1024).toFixed(2)} ميجابايت. الحد الأقصى المسموح: 5 ميجابايت`,
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
+  const getFieldName = () => {
     if (serviceType === 'passport_renewal') {
-      onFileChange('passportFile', file);
+      return 'passportFile';
     } else if (serviceType === 'certificate_authentication' || serviceType === 'certificate_documentation' || serviceType === 'ministry_authentication') {
-      onFileChange('certificateFile', file);
+      return 'certificateFile';
     } else {
-      onFileChange('visaFile', file);
+      return 'visaFile';
     }
+  };
+
+  const handleUploadSuccess = (url: string) => {
+    const fieldName = getFieldName();
+    onUrlChange(fieldName, url);
+  };
+
+  const handleUploadError = (error: string) => {
+    toast({
+      title: "خطأ في رفع الملف",
+      description: error,
+      variant: "destructive",
+    });
   };
 
   return (
     <div className="space-y-2">
-      <Label htmlFor="file-upload">{getFileFieldLabel(serviceType)} *</Label>
-      <Input
-        id="file-upload"
-        type="file"
+      <FileUpload
+        bucket="evidence-files"
+        allowedTypes={['application/pdf', 'image/jpeg', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']}
+        maxSize={10485760} // 10MB
+        onUploadSuccess={handleUploadSuccess}
+        onUploadError={handleUploadError}
+        label={`${getFileFieldLabel(serviceType)} *`}
         accept={getFileAcceptType(serviceType)}
-        onChange={(e) => {
-          const file = e.target.files?.[0] || null;
-          handleFileChange(file);
-        }}
-        required
-        className="w-full"
       />
       <p className="text-sm text-gray-500">
-        يجب أن يكون الملف بصيغة PDF (الحد الأقصى: 5MB)
+        يجب أن يكون الملف بصيغة PDF أو صورة (الحد الأقصى: 10MB)
       </p>
     </div>
   );

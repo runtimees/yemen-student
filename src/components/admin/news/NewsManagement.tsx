@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Plus, Edit, Trash2 } from 'lucide-react';
+import FileUpload from '@/components/ui/file-upload';
 
 interface NewsItem {
   id: string;
@@ -137,6 +138,10 @@ const NewsManagement = () => {
     setIsDialogOpen(true);
   };
 
+  const handleImageUpload = (url: string) => {
+    setFormData(prev => ({ ...prev, image_url: url }));
+  };
+
   if (loading) {
     return <div className="text-center">جاري تحميل الأخبار...</div>;
   }
@@ -181,15 +186,15 @@ const NewsManagement = () => {
                   />
                 </div>
                 
-                <div>
-                  <Label htmlFor="image_url">رابط الصورة (اختياري)</Label>
-                  <Input
-                    id="image_url"
-                    value={formData.image_url}
-                    onChange={(e) => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
-                    placeholder="أدخل رابط الصورة"
-                  />
-                </div>
+                <FileUpload
+                  bucket="news-images"
+                  allowedTypes={['image/jpeg', 'image/png', 'image/webp', 'image/gif']}
+                  maxSize={5242880} // 5MB
+                  onUploadSuccess={handleImageUpload}
+                  currentFile={formData.image_url}
+                  label="صورة الخبر (اختياري)"
+                  accept="image/*"
+                />
                 
                 <div className="flex items-center space-x-2">
                   <Switch
@@ -217,6 +222,7 @@ const NewsManagement = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>الصورة</TableHead>
                   <TableHead>العنوان</TableHead>
                   <TableHead>المحتوى</TableHead>
                   <TableHead>الحالة</TableHead>
@@ -227,6 +233,19 @@ const NewsManagement = () => {
               <TableBody>
                 {news.map((item) => (
                   <TableRow key={item.id}>
+                    <TableCell>
+                      {item.image_url ? (
+                        <img 
+                          src={item.image_url} 
+                          alt={item.title}
+                          className="w-16 h-16 object-cover rounded"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">
+                          بدون صورة
+                        </div>
+                      )}
+                    </TableCell>
                     <TableCell className="font-medium">{item.title}</TableCell>
                     <TableCell className="max-w-xs truncate">{item.content}</TableCell>
                     <TableCell>
