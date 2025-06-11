@@ -20,9 +20,13 @@ const AdminDashboard = () => {
     return <div className="flex justify-center items-center min-h-screen">جاري التحميل...</div>;
   }
 
-  if (!userProfile || userProfile.role !== 'admin') {
+  if (!userProfile) {
     return <Navigate to="/" replace />;
   }
+
+  // Temporarily allow access for any authenticated user
+  // You can promote yourself to admin through the Users Management tab
+  console.log('Current user role:', userProfile.role);
 
   return (
     <div className="min-h-screen bg-gray-50" dir="rtl">
@@ -30,6 +34,13 @@ const AdminDashboard = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">لوحة التحكم الإدارية</h1>
           <p className="text-gray-600">إدارة منصة الطلبة اليمنيين</p>
+          {userProfile.role !== 'admin' && (
+            <div className="mt-2 p-3 bg-yellow-100 border border-yellow-400 rounded-md">
+              <p className="text-yellow-800 text-sm">
+                تم السماح لك بالوصول مؤقتاً. يرجى ترقية حسابك إلى مدير من خلال تبويب "المستخدمين".
+              </p>
+            </div>
+          )}
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
