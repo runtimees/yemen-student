@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,12 +42,18 @@ const RequestsManagement = () => {
 
   const fetchRequests = async () => {
     try {
+      console.log('Fetching requests...');
       const { data, error } = await supabase
         .from('requests')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching requests:', error);
+        throw error;
+      }
+      
+      console.log('Fetched requests:', data);
       setRequests(data || []);
     } catch (error) {
       console.error('Error fetching requests:', error);
@@ -115,7 +120,7 @@ const RequestsManagement = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>إدارة الطلبات</CardTitle>
+          <CardTitle>إدارة الطلبات ({requests.length} طلب)</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -143,146 +148,152 @@ const RequestsManagement = () => {
             </Select>
           </div>
 
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>رقم الطلب</TableHead>
-                  <TableHead>اسم المستخدم</TableHead>
-                  <TableHead>نوع الخدمة</TableHead>
-                  <TableHead>الحالة</TableHead>
-                  <TableHead>تاريخ التقديم</TableHead>
-                  <TableHead>الإجراءات</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredRequests.map((request) => (
-                  <TableRow key={request.id}>
-                    <TableCell className="font-medium">
-                      {request.request_number}
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{request.full_name_ar}</div>
-                        {request.full_name_en && (
-                          <div className="text-sm text-gray-500">{request.full_name_en}</div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>{translateServiceType(request.service_type)}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(request.status)}>
-                        {translateStatus(request.status)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(request.created_at).toLocaleDateString('ar-SA')}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Dialog>
-                          <DialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => {
-                                setSelectedRequest(request);
-                                setAdminNotes(request.admin_notes || '');
-                                setNewStatus(request.status);
-                              }}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="max-w-2xl" dir="rtl">
-                            <DialogHeader>
-                              <DialogTitle>تفاصيل الطلب - {request.request_number}</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <label className="text-sm font-medium">الاسم بالعربية:</label>
-                                  <p>{request.full_name_ar}</p>
-                                </div>
-                                <div>
-                                  <label className="text-sm font-medium">الاسم بالإنجليزية:</label>
-                                  <p>{request.full_name_en || 'غير محدد'}</p>
-                                </div>
-                                <div>
-                                  <label className="text-sm font-medium">الجامعة:</label>
-                                  <p>{request.university_name || 'غير محدد'}</p>
-                                </div>
-                                <div>
-                                  <label className="text-sm font-medium">التخصص:</label>
-                                  <p>{request.major || 'غير محدد'}</p>
-                                </div>
-                              </div>
-                              
-                              {request.additional_notes && (
-                                <div>
-                                  <label className="text-sm font-medium">ملاحظات المستخدم:</label>
-                                  <p className="mt-1 p-2 bg-gray-50 rounded">{request.additional_notes}</p>
-                                </div>
-                              )}
-
-                              <div>
-                                <label className="text-sm font-medium">تحديث الحالة:</label>
-                                <Select value={newStatus} onValueChange={setNewStatus}>
-                                  <SelectTrigger className="mt-1">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="submitted">مقدم</SelectItem>
-                                    <SelectItem value="under_review">قيد المراجعة</SelectItem>
-                                    <SelectItem value="processing">قيد المعالجة</SelectItem>
-                                    <SelectItem value="approved">موافق عليه</SelectItem>
-                                    <SelectItem value="rejected">مرفوض</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-
-                              <div>
-                                <label className="text-sm font-medium">ملاحظات الإدارة:</label>
-                                <Textarea
-                                  value={adminNotes}
-                                  onChange={(e) => setAdminNotes(e.target.value)}
-                                  placeholder="أضف ملاحظات للمستخدم..."
-                                  className="mt-1"
-                                  rows={4}
-                                />
-                              </div>
-
-                              <div className="flex gap-2 pt-4">
-                                <Button
-                                  onClick={() => updateRequest(request.id, {
-                                    status: newStatus,
-                                    admin_notes: adminNotes
-                                  })}
-                                  className="flex-1"
-                                >
-                                  حفظ التحديثات
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  onClick={() => sendEmail(request)}
-                                  className="flex items-center gap-2"
-                                >
-                                  <Mail className="h-4 w-4" />
-                                  إرسال بريد
-                                </Button>
-                              </div>
-                            </div>
-                          </DialogContent>
-                        </Dialog>
-                      </div>
-                    </TableCell>
+          {requests.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              لا توجد طلبات في النظام حتى الآن
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>رقم الطلب</TableHead>
+                    <TableHead>اسم المستخدم</TableHead>
+                    <TableHead>نوع الخدمة</TableHead>
+                    <TableHead>الحالة</TableHead>
+                    <TableHead>تاريخ التقديم</TableHead>
+                    <TableHead>الإجراءات</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {filteredRequests.map((request) => (
+                    <TableRow key={request.id}>
+                      <TableCell className="font-medium">
+                        {request.request_number}
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{request.full_name_ar || 'غير محدد'}</div>
+                          {request.full_name_en && (
+                            <div className="text-sm text-gray-500">{request.full_name_en}</div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{translateServiceType(request.service_type)}</TableCell>
+                      <TableCell>
+                        <Badge className={getStatusColor(request.status)}>
+                          {translateStatus(request.status)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {new Date(request.created_at).toLocaleDateString('ar-SA')}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedRequest(request);
+                                  setAdminNotes(request.admin_notes || '');
+                                  setNewStatus(request.status);
+                                }}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl" dir="rtl">
+                              <DialogHeader>
+                                <DialogTitle>تفاصيل الطلب - {request.request_number}</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <label className="text-sm font-medium">الاسم بالعربية:</label>
+                                    <p>{request.full_name_ar || 'غير محدد'}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium">الاسم بالإنجليزية:</label>
+                                    <p>{request.full_name_en || 'غير محدد'}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium">الجامعة:</label>
+                                    <p>{request.university_name || 'غير محدد'}</p>
+                                  </div>
+                                  <div>
+                                    <label className="text-sm font-medium">التخصص:</label>
+                                    <p>{request.major || 'غير محدد'}</p>
+                                  </div>
+                                </div>
+                                
+                                {request.additional_notes && (
+                                  <div>
+                                    <label className="text-sm font-medium">ملاحظات المستخدم:</label>
+                                    <p className="mt-1 p-2 bg-gray-50 rounded">{request.additional_notes}</p>
+                                  </div>
+                                )}
 
-          {filteredRequests.length === 0 && (
+                                <div>
+                                  <label className="text-sm font-medium">تحديث الحالة:</label>
+                                  <Select value={newStatus} onValueChange={setNewStatus}>
+                                    <SelectTrigger className="mt-1">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="submitted">مقدم</SelectItem>
+                                      <SelectItem value="under_review">قيد المراجعة</SelectItem>
+                                      <SelectItem value="processing">قيد المعالجة</SelectItem>
+                                      <SelectItem value="approved">موافق عليه</SelectItem>
+                                      <SelectItem value="rejected">مرفوض</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+
+                                <div>
+                                  <label className="text-sm font-medium">ملاحظات الإدارة:</label>
+                                  <Textarea
+                                    value={adminNotes}
+                                    onChange={(e) => setAdminNotes(e.target.value)}
+                                    placeholder="أضف ملاحظات للمستخدم..."
+                                    className="mt-1"
+                                    rows={4}
+                                  />
+                                </div>
+
+                                <div className="flex gap-2 pt-4">
+                                  <Button
+                                    onClick={() => updateRequest(request.id, {
+                                      status: newStatus,
+                                      admin_notes: adminNotes
+                                    })}
+                                    className="flex-1"
+                                  >
+                                    حفظ التحديثات
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => sendEmail(request)}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <Mail className="h-4 w-4" />
+                                    إرسال بريد
+                                  </Button>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+
+          {filteredRequests.length === 0 && requests.length > 0 && (
             <div className="text-center py-8 text-gray-500">
               لا توجد طلبات مطابقة للبحث
             </div>
