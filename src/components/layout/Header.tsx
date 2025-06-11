@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import LoginForm from '@/components/auth/LoginForm';
 import SignupForm from '@/components/auth/SignupForm';
-import { User, LogOut, Settings } from 'lucide-react';
+import { User, LogOut, Settings, Home, Star, BarChart3, Briefcase } from 'lucide-react';
 
 const Header = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -29,82 +29,79 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
-      <div className="container mx-auto px-4 py-4">
+    <header className="bg-gray-900 text-white">
+      <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 space-x-reverse">
-            <div className="w-10 h-10 bg-yemen-red rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">ط</span>
-            </div>
-            <span className="font-bold text-xl text-gray-900">منصة الطلبة اليمنيين</span>
-          </Link>
-
-          {/* Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-8 space-x-reverse">
-            <Link to="/" className="text-gray-700 hover:text-yemen-blue transition-colors">
-              الرئيسية
-            </Link>
-            <Link to="/services" className="text-gray-700 hover:text-yemen-blue transition-colors">
-              الخدمات
-            </Link>
-            {userProfile && (
-              <Link to="/track" className="text-gray-700 hover:text-yemen-blue transition-colors">
-                تتبع الطلبات
-              </Link>
-            )}
-            <Link to="/vision" className="text-gray-700 hover:text-yemen-blue transition-colors">
-              الرؤية والرسالة
-            </Link>
-            <Link to="/study-iraq" className="text-gray-700 hover:text-yemen-blue transition-colors">
-              الدراسة في العراق
-            </Link>
-            <Link to="/movement-guides" className="text-gray-700 hover:text-yemen-blue transition-colors">
-              أدلة الحركة
-            </Link>
-            <Link to="/student-library" className="text-gray-700 hover:text-yemen-blue transition-colors">
-              مكتبة الطلبة
-            </Link>
-          </nav>
-
-          {/* User Section */}
-          <div className="flex items-center space-x-4 space-x-reverse">
+          {/* Right side - Logout button */}
+          <div className="flex items-center space-x-2 space-x-reverse">
             {userProfile ? (
-              <div className="flex items-center space-x-3 space-x-reverse">
-                {userProfile.role === 'admin' && (
-                  <Link to="/admin">
-                    <Button variant="outline" size="sm" className="flex items-center gap-2">
-                      <Settings className="h-4 w-4" />
-                      لوحة التحكم
-                    </Button>
-                  </Link>
-                )}
-                <Link to="/profile">
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    {userProfile.full_name_ar}
-                  </Button>
-                </Link>
-                <Button
-                  onClick={handleLogout}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2"
-                >
-                  <LogOut className="h-4 w-4" />
-                  تسجيل الخروج
-                </Button>
-              </div>
+              <Button
+                onClick={handleLogout}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded flex items-center gap-2"
+              >
+                تسجيل الخروج
+                <span className="text-xs">↗</span>
+              </Button>
             ) : (
               <div className="flex items-center space-x-2 space-x-reverse">
-                <Button onClick={() => setIsLoginOpen(true)} variant="outline">
+                <Button onClick={() => setIsLoginOpen(true)} className="bg-red-600 hover:bg-red-700">
                   تسجيل الدخول
                 </Button>
-                <Button onClick={() => setIsSignupOpen(true)} className="bg-yemen-red hover:bg-red-700">
+                <Button onClick={() => setIsSignupOpen(true)} className="bg-red-600 hover:bg-red-700">
                   إنشاء حساب
                 </Button>
               </div>
             )}
+          </div>
+
+          {/* Center - User info and navigation icons */}
+          <div className="flex items-center space-x-6 space-x-reverse">
+            {userProfile && (
+              <>
+                <div className="flex items-center space-x-2 space-x-reverse">
+                  <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
+                    <User className="h-4 w-4" />
+                  </div>
+                  <span className="text-sm">{userProfile.full_name_ar}</span>
+                </div>
+                
+                {userProfile.role === 'admin' && (
+                  <Link to="/admin">
+                    <Button variant="ghost" size="sm" className="text-white hover:bg-gray-800">
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                )}
+              </>
+            )}
+
+            {/* Navigation Icons */}
+            <div className="flex items-center space-x-4 space-x-reverse">
+              <Link to="/" className="hover:text-gray-300">
+                <Home className="h-5 w-5" />
+              </Link>
+              <Link to="/services" className="hover:text-gray-300">
+                <Briefcase className="h-5 w-5" />
+              </Link>
+              <Link to="/track" className="hover:text-gray-300">
+                <BarChart3 className="h-5 w-5" />
+              </Link>
+              <Link to="/vision" className="hover:text-gray-300">
+                <Star className="h-5 w-5" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Left side - Logo and title */}
+          <div className="flex items-center space-x-3 space-x-reverse">
+            <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
+              <img 
+                src="/lovable-uploads/3d2929ca-e1b2-4b4e-bc3d-21dbcd648913.png" 
+                alt="Logo" 
+                className="w-8 h-8 object-contain"
+              />
+            </div>
+            <h1 className="text-lg font-bold">منصة الطلبة اليمنيين في العراق "نجد"</h1>
           </div>
         </div>
       </div>
