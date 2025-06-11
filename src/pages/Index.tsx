@@ -1,7 +1,9 @@
+
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import FeatureCard from '@/components/home/FeatureCard';
 import NewsCarousel from '@/components/home/NewsCarousel';
+import AddNewsButton from '@/components/admin/AddNewsButton';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -135,6 +137,11 @@ const Index = () => {
           <p className="text-xl md:text-2xl mb-8 text-gray-200 fade-in" style={{ animationDelay: '0.6s' }}>
             نحو تعليم عالٍ أسهل وأكثر تمكينًا
           </p>
+          
+          {/* Add News Button - Only show for development/testing */}
+          <div className="mt-8">
+            <AddNewsButton />
+          </div>
         </div>
       </section>
 
