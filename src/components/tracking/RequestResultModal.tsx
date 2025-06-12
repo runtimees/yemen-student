@@ -34,9 +34,14 @@ const RequestResultModal = ({ open, onOpenChange, requestData }: RequestResultMo
     }
   };
 
-  // Function to get the display status with admin notes
+  // Function to get the display status with admin notes - always returns an object
   const getDisplayStatus = () => {
-    if (!requestData) return 'غير متوفر';
+    if (!requestData) {
+      return {
+        status: 'غير متوفر',
+        notes: null
+      };
+    }
     
     // Show the translated status
     const translatedStatus = translateStatus(requestData.status);
