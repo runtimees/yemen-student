@@ -26,10 +26,12 @@ const FileUploadField = ({ serviceType, onFileChange, onUrlChange }: FileUploadF
 
   const handleUploadSuccess = (url: string) => {
     const fieldName = getFieldName();
+    console.log('File upload successful:', { fieldName, url });
     onUrlChange(fieldName, url);
   };
 
   const handleUploadError = (error: string) => {
+    console.error('File upload error:', error);
     toast({
       title: "خطأ في رفع الملف",
       description: error,
@@ -40,7 +42,7 @@ const FileUploadField = ({ serviceType, onFileChange, onUrlChange }: FileUploadF
   return (
     <div className="space-y-2">
       <FileUpload
-        bucket="evidence-files"
+        bucket="files"
         allowedTypes={['application/pdf', 'image/jpeg', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']}
         maxSize={10485760} // 10MB
         onUploadSuccess={handleUploadSuccess}

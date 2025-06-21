@@ -25,11 +25,13 @@ const ServiceForm = () => {
     handleSubmit,
     handleBackToServices,
     handleTrackRequest,
+    uploadedFileUrl,
+    setUploadedFileUrl,
   } = useServiceForm(serviceType);
 
   const handleUrlChange = (field: string, url: string) => {
-    // Handle URL changes for uploaded files
     console.log(`File uploaded for ${field}: ${url}`);
+    setUploadedFileUrl(url);
   };
 
   if (!user) {

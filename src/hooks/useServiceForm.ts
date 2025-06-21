@@ -35,9 +35,20 @@ export const useServiceForm = (serviceType: string) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedRequestNumber, setSubmittedRequestNumber] = useState<string>('');
+  const [uploadedFileUrl, setUploadedFileUrl] = useState<string>('');
 
   const handleFileChange = (field: string, file: File | null) => {
     setFormData(prev => ({ ...prev, [field]: file }));
+  };
+
+  const getFileType = (serviceType: string) => {
+    if (serviceType === 'passport_renewal') {
+      return 'passport';
+    } else if (serviceType === 'certificate_authentication' || serviceType === 'certificate_documentation' || serviceType === 'ministry_authentication') {
+      return 'certificate';
+    } else {
+      return 'visa_request';
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,10 +63,20 @@ export const useServiceForm = (serviceType: string) => {
       return;
     }
 
+    if (!uploadedFileUrl) {
+      toast({
+        title: "خطأ",
+        description: "يجب رفع الملف المطلوب أولاً",
+        variant: "destructive",
+      });
+      return;
+    }
+
     console.log('Authenticated user:', user);
     console.log('User ID (UUID):', user.id);
     console.log('User profile:', userProfile);
     console.log('Form data being submitted:', formData);
+    console.log('Uploaded file URL:', uploadedFileUrl);
 
     setIsSubmitting(true);
 
@@ -89,63 +110,26 @@ export const useServiceForm = (serviceType: string) => {
 
       console.log('Request created successfully:', request);
 
-      // Handle file uploads if any
-      const files = [
-        { file: formData.passportFile, type: 'passport' },
-        { file: formData.certificateFile, type: 'certificate' },
-        { file: formData.visaFile, type: 'visa_request' },
-      ].filter(item => item.file);
+      // Save file metadata to database
+      if (uploadedFileUrl) {
+        const fileType = getFileType(serviceType);
+        console.log('Saving file metadata:', { requestId: request.id, fileType, filePath: uploadedFileUrl });
+        
+        const { error: fileMetadataError } = await supabase
+          .from('files')
+          .insert({
+            request_id: request.id,
+            file_type: fileType,
+            file_path: uploadedFileUrl,
+          });
 
-      console.log('Files to upload:', files.length);
-
-      for (const { file, type } of files) {
-        if (file) {
-          console.log(`Processing file: ${file.name}, Size: ${file.size} bytes (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
-          
-          // Create file path with user ID in folder structure for RLS policy
-          const filePath = `${user.id}/${request.id}/${type}/${file.name}`;
-          
-          console.log('Uploading file to path:', filePath);
-          
-          // Try upload with additional options to handle larger files
-          const { error: uploadError } = await supabase.storage
-            .from('files')
-            .upload(filePath, file, {
-              cacheControl: '3600',
-              upsert: false
-            });
-
-          if (uploadError) {
-            console.error('Upload error:', uploadError);
-            console.error('Upload error details:', uploadError.message);
-            
-            // Provide more specific error messages based on error message content
-            if (uploadError.message.includes('413') || uploadError.message.includes('exceeded the maximum allowed size') || uploadError.message.includes('too large')) {
-              throw new Error(`الملف كبير جداً. الحد الأقصى المسموح في النظام أقل من المتوقع. حجم الملف: ${(file.size / 1024 / 1024).toFixed(2)} ميجابايت`);
-            }
-            
-            throw new Error(`فشل في رفع الملف ${type}: ${uploadError.message}`);
-          }
-
-          console.log('File uploaded successfully:', filePath);
-
-          // Save file metadata
-          const { error: fileMetadataError } = await supabase
-            .from('files')
-            .insert({
-              request_id: request.id,
-              file_type: type,
-              file_path: filePath,
-            });
-
-          if (fileMetadataError) {
-            console.error('File metadata error:', fileMetadataError);
-            console.error('File metadata error details:', fileMetadataError.message, fileMetadataError.code);
-            throw new Error(`فشل في حفظ بيانات الملف ${type}: ${fileMetadataError.message}`);
-          }
-
-          console.log('File metadata saved successfully for:', type);
+        if (fileMetadataError) {
+          console.error('File metadata error:', fileMetadataError);
+          console.error('File metadata error details:', fileMetadataError.message, fileMetadataError.code);
+          throw new Error(`فشل في حفظ بيانات الملف: ${fileMetadataError.message}`);
         }
+
+        console.log('File metadata saved successfully');
       }
 
       // Set success state instead of navigating immediately
@@ -189,5 +173,7 @@ export const useServiceForm = (serviceType: string) => {
     handleSubmit,
     handleBackToServices,
     handleTrackRequest,
+    uploadedFileUrl,
+    setUploadedFileUrl,
   };
 };
