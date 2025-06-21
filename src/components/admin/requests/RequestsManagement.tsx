@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { translateServiceType, translateStatus } from '@/utils/requestUtils';
-import { Search, Eye, Mail, Edit } from 'lucide-react';
+import { Search, Eye, Mail, Edit, FileText, Download, ExternalLink } from 'lucide-react';
+
+interface RequestFile {
+  id: string;
+  file_type: string;
+  file_path: string;
+  uploaded_at: string;
+}
 
 interface Request {
   id: string;
@@ -25,6 +33,7 @@ interface Request {
   admin_notes?: string;
   created_at: string;
   user_id: string;
+  files?: RequestFile[];
 }
 
 const RequestsManagement = () => {
@@ -43,18 +52,36 @@ const RequestsManagement = () => {
   const fetchRequests = async () => {
     try {
       console.log('Fetching requests...');
-      const { data, error } = await supabase
+      const { data: requestsData, error: requestsError } = await supabase
         .from('requests')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching requests:', error);
-        throw error;
+      if (requestsError) {
+        console.error('Error fetching requests:', requestsError);
+        throw requestsError;
       }
       
-      console.log('Fetched requests:', data);
-      setRequests(data || []);
+      console.log('Fetched requests:', requestsData);
+
+      // Fetch files for each request
+      const requestsWithFiles = await Promise.all(
+        (requestsData || []).map(async (request) => {
+          const { data: filesData, error: filesError } = await supabase
+            .from('files')
+            .select('*')
+            .eq('request_id', request.id);
+
+          if (filesError) {
+            console.error(`Error fetching files for request ${request.id}:`, filesError);
+            return { ...request, files: [] };
+          }
+
+          return { ...request, files: filesData || [] };
+        })
+      );
+
+      setRequests(requestsWithFiles);
     } catch (error) {
       console.error('Error fetching requests:', error);
       toast.error('خطأ في تحميل الطلبات');
@@ -96,6 +123,42 @@ const RequestsManagement = () => {
       toast.success('تم إرسال البريد الإلكتروني');
     } catch (error) {
       toast.error('خطأ في إرسال البريد الإلكتروني');
+    }
+  };
+
+  const handleFileView = (filePath: string) => {
+    window.open(filePath, '_blank');
+  };
+
+  const handleFileDownload = async (filePath: string, fileName: string) => {
+    try {
+      const response = await fetch(filePath);
+      const blob = await response.blob();
+      
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast.success('تم تحميل الملف بنجاح');
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      toast.error('خطأ في تحميل الملف');
+    }
+  };
+
+  const getFileTypeLabel = (fileType: string) => {
+    switch (fileType) {
+      case 'passport': return 'جواز السفر';
+      case 'certificate': return 'الشهادة';
+      case 'visa_request': return 'طلب الفيزا';
+      case 'other': return 'أخرى';
+      default: return fileType;
     }
   };
 
@@ -170,6 +233,7 @@ const RequestsManagement = () => {
                     <TableHead>اسم المستخدم</TableHead>
                     <TableHead>نوع الخدمة</TableHead>
                     <TableHead>الحالة</TableHead>
+                    <TableHead>الملفات المرفقة</TableHead>
                     <TableHead>تاريخ التقديم</TableHead>
                     <TableHead>الإجراءات</TableHead>
                   </TableRow>
@@ -195,6 +259,38 @@ const RequestsManagement = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
+                        <div className="flex flex-col gap-1">
+                          {request.files && request.files.length > 0 ? (
+                            request.files.map((file) => (
+                              <div key={file.id} className="flex items-center gap-2 text-sm">
+                                <FileText className="h-4 w-4 text-blue-600" />
+                                <span className="text-gray-600">{getFileTypeLabel(file.file_type)}</span>
+                                <div className="flex gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleFileView(file.file_path)}
+                                    className="h-6 px-2"
+                                  >
+                                    <ExternalLink className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleFileDownload(file.file_path, `${getFileTypeLabel(file.file_type)}.pdf`)}
+                                    className="h-6 px-2"
+                                  >
+                                    <Download className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <span className="text-gray-400 text-sm">لا توجد ملفات</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
                         {new Date(request.created_at).toLocaleDateString('ar-SA')}
                       </TableCell>
                       <TableCell>
@@ -213,11 +309,11 @@ const RequestsManagement = () => {
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-2xl" dir="rtl">
+                            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" dir="rtl">
                               <DialogHeader>
                                 <DialogTitle>تفاصيل الطلب - {request.request_number}</DialogTitle>
                               </DialogHeader>
-                              <div className="space-y-4">
+                              <div className="space-y-6">
                                 <div className="grid grid-cols-2 gap-4">
                                   <div>
                                     <label className="text-sm font-medium">الاسم بالعربية:</label>
@@ -241,6 +337,50 @@ const RequestsManagement = () => {
                                   <div>
                                     <label className="text-sm font-medium">ملاحظات المستخدم:</label>
                                     <p className="mt-1 p-2 bg-gray-50 rounded">{request.additional_notes}</p>
+                                  </div>
+                                )}
+
+                                {/* Files Section */}
+                                {request.files && request.files.length > 0 && (
+                                  <div>
+                                    <label className="text-sm font-medium mb-3 block">الملفات المرفقة:</label>
+                                    <div className="grid grid-cols-1 gap-3">
+                                      {request.files.map((file) => (
+                                        <div key={file.id} className="border rounded-lg p-4 bg-gray-50">
+                                          <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                              <FileText className="h-8 w-8 text-blue-600" />
+                                              <div>
+                                                <p className="font-medium">{getFileTypeLabel(file.file_type)}</p>
+                                                <p className="text-sm text-gray-500">
+                                                  تم الرفع: {new Date(file.uploaded_at).toLocaleDateString('ar-SA')}
+                                                </p>
+                                              </div>
+                                            </div>
+                                            <div className="flex gap-2">
+                                              <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleFileView(file.file_path)}
+                                                className="flex items-center gap-2"
+                                              >
+                                                <ExternalLink className="h-4 w-4" />
+                                                عرض
+                                              </Button>
+                                              <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => handleFileDownload(file.file_path, `${request.request_number}-${getFileTypeLabel(file.file_type)}.pdf`)}
+                                                className="flex items-center gap-2"
+                                              >
+                                                <Download className="h-4 w-4" />
+                                                تحميل
+                                              </Button>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
                                   </div>
                                 )}
 
