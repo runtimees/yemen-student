@@ -14,6 +14,10 @@ interface FileUploadFieldProps {
 const FileUploadField = ({ serviceType, onFileChange, onUrlChange }: FileUploadFieldProps) => {
   const { toast } = useToast();
 
+  console.log('FileUploadField - Service type:', serviceType);
+  const fileLabel = getFileFieldLabel(serviceType);
+  console.log('FileUploadField - File label:', fileLabel);
+
   const getFieldName = () => {
     if (serviceType === 'passport_renewal') {
       return 'passportFile';
@@ -44,10 +48,10 @@ const FileUploadField = ({ serviceType, onFileChange, onUrlChange }: FileUploadF
       <FileUpload
         bucket="files"
         allowedTypes={['application/pdf', 'image/jpeg', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']}
-        maxSize={1048576} // Changed to 1MB (1 * 1024 * 1024)
+        maxSize={1048576} // 1MB (1 * 1024 * 1024)
         onUploadSuccess={handleUploadSuccess}
         onUploadError={handleUploadError}
-        label={`${getFileFieldLabel(serviceType)} *`}
+        label={`${fileLabel} *`}
         accept={getFileAcceptType(serviceType)}
       />
       <p className="text-sm text-gray-500">
