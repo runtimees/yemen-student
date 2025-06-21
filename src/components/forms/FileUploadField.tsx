@@ -44,14 +44,14 @@ const FileUploadField = ({ serviceType, onFileChange, onUrlChange }: FileUploadF
       <FileUpload
         bucket="files"
         allowedTypes={['application/pdf', 'image/jpeg', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']}
-        maxSize={10485760} // 10MB
+        maxSize={1048576} // Changed to 1MB (1 * 1024 * 1024)
         onUploadSuccess={handleUploadSuccess}
         onUploadError={handleUploadError}
         label={`${getFileFieldLabel(serviceType)} *`}
         accept={getFileAcceptType(serviceType)}
       />
       <p className="text-sm text-gray-500">
-        يجب أن يكون الملف بصيغة PDF أو صورة (الحد الأقصى: 10MB)
+        يجب أن يكون الملف بصيغة PDF أو صورة (الحد الأقصى: 1MB)
       </p>
     </div>
   );

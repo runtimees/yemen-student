@@ -11,12 +11,12 @@ export const getFileFieldLabel = (serviceType: string) => {
   switch (serviceType) {
     case 'passport_renewal':
       return 'صورة الجواز (PDF)';
+    case 'visa_request':
+      return 'صورة الجواز (PDF)';
     case 'certificate_authentication':
     case 'certificate_documentation':
     case 'ministry_authentication':
       return 'صورة الشهادة (PDF)';
-    case 'visa_request':
-      return 'المستندات المطلوبة (PDF)';
     default:
       return 'المستندات (PDF)';
   }
@@ -43,7 +43,7 @@ export const getServiceTitle = (serviceType: string) => {
 };
 
 export const validateFileSize = (file: File) => {
-  const maxSize = 5 * 1024 * 1024; // Increased to 5MB to be safe
+  const maxSize = 1 * 1024 * 1024; // Changed to 1MB
   console.log('File size:', file.size, 'bytes');
   console.log('Max allowed size:', maxSize, 'bytes');
   console.log('File size in MB:', (file.size / 1024 / 1024).toFixed(2), 'MB');
