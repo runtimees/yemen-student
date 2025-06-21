@@ -10,10 +10,31 @@ import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { useEffect, useState } from 'react';
 
 const ServiceForm = () => {
   const { user } = useAuth();
-  const serviceType = new URLSearchParams(window.location.search).get('type') || 'certificate_authentication';
+  const [serviceType, setServiceType] = useState<string>('certificate_authentication');
+  
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const typeParam = urlParams.get('type');
+    const pathServiceType = window.location.pathname.split('/').pop();
+    
+    console.log('ServiceForm - URL params type:', typeParam);
+    console.log('ServiceForm - Path service type:', pathServiceType);
+    
+    // Determine service type from URL
+    let finalServiceType = 'certificate_authentication';
+    if (typeParam) {
+      finalServiceType = typeParam;
+    } else if (pathServiceType && pathServiceType !== 'service') {
+      finalServiceType = pathServiceType;
+    }
+    
+    console.log('ServiceForm - Final service type:', finalServiceType);
+    setServiceType(finalServiceType);
+  }, []);
   
   const {
     formData,
