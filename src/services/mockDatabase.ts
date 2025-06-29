@@ -1,134 +1,113 @@
-import { User, Request, ServiceType, UploadedFile, NewsItem } from '@/types/database';
 
-// Mock user data
-const users: User[] = [
-  {
-    id: 1,
-    full_name_ar: 'محمد علي',
-    full_name_en: 'Mohammed Ali',
-    email: 'user@example.com',
-    password_hash: 'password123', // This would be hashed in production
-    role: 'student',
-    created_at: new Date().toISOString()
-  }
-];
+import { User, Request, NewsItem } from '@/types/database';
 
-// Mock requests
-const requests: Request[] = [
+// Mock data with string UUIDs
+const mockUsers: User[] = [
   {
-    id: 1,
-    user_id: 1,
-    service_type: 'certificate_authentication',
-    status: 'under_review',
-    request_number: 'REQ-2023-001',
-    submission_date: '2023-05-15',
-    university_name: 'جامعة بغداد',
-    created_at: new Date().toISOString()
+    id: "550e8400-e29b-41d4-a716-446655440000",
+    full_name_ar: "أحمد محمد علي",
+    full_name_en: "Ahmed Mohammed Ali",
+    email: "ahmed@example.com",
+    password_hash: "hashed_password",
+    phone_number: "+964123456789",
+    role: "student",
+    created_at: "2024-01-01T00:00:00Z"
   },
   {
-    id: 2,
-    user_id: 1,
-    service_type: 'passport_renewal',
-    status: 'submitted',
-    request_number: 'REQ-2023-002',
-    submission_date: '2023-05-20',
-    created_at: new Date().toISOString()
-  }
-];
-
-// Mock files
-const uploadedFiles: UploadedFile[] = [
-  {
-    id: 1,
-    request_id: 1,
-    file_type: 'certificate',
-    file_path: '/uploads/certificate_1.pdf',
-    uploaded_at: new Date().toISOString()
+    id: "550e8400-e29b-41d4-a716-446655440001",
+    user_id: "550e8400-e29b-41d4-a716-446655440000",
+    full_name_ar: "فاطمة حسن",
+    full_name_en: "Fatima Hassan",
+    email: "fatima@example.com",
+    password_hash: "hashed_password",
+    phone_number: "+964987654321",
+    role: "student",
+    created_at: "2024-01-02T00:00:00Z"
   },
   {
-    id: 2,
-    request_id: 2,
-    file_type: 'passport',
-    file_path: '/uploads/passport_1.jpg',
-    uploaded_at: new Date().toISOString()
+    id: "550e8400-e29b-41d4-a716-446655440002",
+    user_id: "550e8400-e29b-41d4-a716-446655440001",
+    full_name_ar: "عبد الله محمود",
+    full_name_en: "Abdullah Mahmoud",
+    email: "abdullah@example.com",
+    password_hash: "hashed_password",
+    phone_number: "+964555123456",
+    role: "admin",
+    created_at: "2024-01-03T00:00:00Z"
   }
 ];
 
-// Mock news
+const mockRequests: Request[] = [
+  {
+    id: "750e8400-e29b-41d4-a716-446655440000",
+    user_id: "550e8400-e29b-41d4-a716-446655440000",
+    service_type: "certificate_authentication",
+    status: "under_review",
+    request_number: "REQ-2024-0001",
+    submission_date: "2024-01-15",
+    university_name: "جامعة بغداد",
+    major: "هندسة الحاسوب",
+    created_at: "2024-01-15T10:00:00Z"
+  }
+];
+
 const mockNews: NewsItem[] = [
   {
-    id: "1",
-    title: "أهلاً وسهلاً بكم في منصة الطلبة اليمنيين",
-    content: "نتطلع لخدمتكم بأفضل ما لدينا",
+    id: "850e8400-e29b-41d4-a716-446655440000",
+    title: "مرحباً بكم في منصة الطلبة اليمنيين",
+    content: "نحن سعداء لخدمتكم وتقديم أفضل الخدمات للطلبة اليمنيين في العراق",
     is_active: true,
-    created_at: new Date().toISOString(),
-    image_url: "/lovable-uploads/3f42ec74-bc6b-49c4-8f8c-3a5e6895dc36.png"
-  },
-  {
-    id: "2", 
-    title: "خدمات جديدة متاحة الآن",
-    content: "تم إضافة خدمات جديدة لتسهيل إجراءاتكم",
-    is_active: true,
-    created_at: new Date().toISOString(),
-    image_url: null
+    created_at: "2024-01-01T00:00:00Z"
   }
 ];
 
-// Mock database service
 export const mockDatabase = {
-  // User operations
-  getUserByEmail: (email: string) => {
-    return users.find(user => user.email === email) || null;
+  users: {
+    findByEmail: async (email: string): Promise<User | null> => {
+      const user = mockUsers.find(u => u.email === email);
+      return user || null;
+    },
+    
+    create: async (userData: Omit<User, 'id' | 'created_at'>): Promise<User> => {
+      const newUser: User = {
+        id: `550e8400-e29b-41d4-a716-${Date.now().toString().padStart(12, '0')}`,
+        ...userData,
+        created_at: new Date().toISOString()
+      };
+      mockUsers.push(newUser);
+      return newUser;
+    },
+    
+    findById: async (id: string): Promise<User | null> => {
+      const user = mockUsers.find(u => u.id === id);
+      return user || null;
+    }
   },
   
-  createUser: (userData: Omit<User, 'id' | 'created_at'>) => {
-    const newUser: User = {
-      ...userData,
-      id: users.length + 1,
-      created_at: new Date().toISOString()
-    };
-    users.push(newUser);
-    return newUser;
-  },
-
-  // Request operations
-  getRequestsByUserId: (userId: number) => {
-    return requests.filter(request => request.user_id === userId);
-  },
-  
-  getRequestByNumber: (requestNumber: string) => {
-    return requests.find(request => request.request_number === requestNumber) || null;
-  },
-  
-  createRequest: (requestData: Omit<Request, 'id' | 'created_at'>) => {
-    const newRequest: Request = {
-      ...requestData,
-      id: requests.length + 1,
-      created_at: new Date().toISOString()
-    };
-    requests.push(newRequest);
-    return newRequest;
-  },
-
-  // File operations
-  getFilesByRequestId: (requestId: number) => {
-    return uploadedFiles.filter(file => file.request_id === requestId);
+  requests: {
+    findByUserId: async (userId: string): Promise<Request[]> => {
+      return mockRequests.filter(r => r.user_id === userId);
+    },
+    
+    create: async (requestData: Omit<Request, 'id' | 'created_at'>): Promise<Request> => {
+      const newRequest: Request = {
+        id: `750e8400-e29b-41d4-a716-${Date.now().toString().padStart(12, '0')}`,
+        ...requestData,
+        created_at: new Date().toISOString()
+      };
+      mockRequests.push(newRequest);
+      return newRequest;
+    },
+    
+    findByNumber: async (requestNumber: string): Promise<Request | null> => {
+      const request = mockRequests.find(r => r.request_number === requestNumber);
+      return request || null;
+    }
   },
   
-  uploadFile: (fileData: Omit<UploadedFile, 'id' | 'uploaded_at'>) => {
-    const newFile: UploadedFile = {
-      ...fileData,
-      id: uploadedFiles.length + 1,
-      uploaded_at: new Date().toISOString()
-    };
-    uploadedFiles.push(newFile);
-    return newFile;
-  },
-
-  // News operations
-  getActiveNews: () => {
-    return mockNews.filter(item => item.is_active);
+  news: {
+    getActive: async (): Promise<NewsItem[]> => {
+      return mockNews.filter(n => n.is_active);
+    }
   }
 };
-
-export default mockDatabase;
