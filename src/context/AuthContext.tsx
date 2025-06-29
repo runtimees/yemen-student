@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { User as UserProfile } from '@/types/database';
 import { loginUser, signupUser, logoutUser } from '@/services/authService';
 
@@ -44,14 +44,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isAuthenticated = !!user && !!session;
 
   useEffect(() => {
-    // Set up auth state listener
+    console.log('Setting up auth state listener');
+    
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        
         setSession(session);
         setUser(session?.user ?? null);
         
-        if (session?.user) {
-          // Fetch user profile when logged in
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Defer profile fetching to avoid deadlocks
           setTimeout(async () => {
             try {
               const { data: profile } = await supabase
@@ -62,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               
               if (profile) {
                 setUserProfile({
-                  id: parseInt(profile.id),
+                  id: profile.id,
                   full_name_ar: profile.full_name_ar || '',
                   full_name_en: profile.full_name_en || '',
                   email: profile.email,
@@ -77,7 +81,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               console.error('Error fetching user profile:', error);
             }
           }, 0);
-        } else {
+        } else if (event === 'SIGNED_OUT') {
           setUserProfile(null);
         }
         
@@ -85,7 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // Check for existing session
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -96,12 +100,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const handleLogin = async (email: string, password: string): Promise<boolean> => {
-    const result = await loginUser(email, password);
-    if (result.success && result.userProfile) {
-      setUserProfile(result.userProfile);
-      return true;
+    try {
+      const result = await loginUser(email, password);
+      if (result.success && result.userProfile) {
+        setUserProfile(result.userProfile);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Login error in context:', error);
+      return false;
     }
-    return false;
   };
 
   const handleSignup = async (
@@ -112,12 +121,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     phoneNumber?: string,
     residenceStatus?: string
   ): Promise<boolean> => {
-    const result = await signupUser(nameAr, email, password, nameEn, phoneNumber, residenceStatus);
-    if (result.success && result.userProfile) {
-      setUserProfile(result.userProfile);
-      return true;
+    try {
+      const result = await signupUser(nameAr, email, password, nameEn, phoneNumber, residenceStatus);
+      if (result.success && result.userProfile) {
+        setUserProfile(result.userProfile);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Signup error in context:', error);
+      return false;
     }
-    return false;
   };
 
   const handleLogout = async (): Promise<void> => {

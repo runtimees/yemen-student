@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { User, Request, UploadedFile, NewsItem } from '@/types/database';
 
 export const databaseService = {
@@ -16,14 +16,14 @@ export const databaseService = {
     }
     
     return {
-      id: parseInt(data.id),
+      id: data.id,
       full_name_ar: data.full_name_ar,
       full_name_en: data.full_name_en,
       email: data.email,
-      password_hash: '', // No longer store password hash in client
+      password_hash: '',
       phone_number: data.phone_number || undefined,
       role: data.role,
-      profile_picture_url: data.profile_picture_url || undefined, // Added profile picture URL
+      profile_picture_url: data.profile_picture_url || undefined,
       created_at: data.created_at
     };
   },

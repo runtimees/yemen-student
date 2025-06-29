@@ -1,5 +1,5 @@
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/database';
 import { toast as sonnerToast } from 'sonner';
 
@@ -36,7 +36,7 @@ export const createUserProfileIfNotExists = async (email: string, name: string, 
     const existingProfile = await fetchUserProfile(email);
     if (existingProfile) {
       console.log('User profile already exists, skipping creation');
-      return true; // Profile already exists
+      return true;
     }
 
     console.log('No existing profile found, creating new profile with:', { email, name, role });
@@ -67,12 +67,10 @@ export const createUserProfileIfNotExists = async (email: string, name: string, 
 // Function to send an email notification
 export const sendEmailNotification = async (email: string, subject: string, message: string) => {
   try {
-    // In a real app, you would call a Supabase Edge Function to send emails
     console.log(`Email notification to be sent to ${email}`);
     console.log(`Subject: ${subject}`);
     console.log(`Message: ${message}`);
     
-    // Show a toast to simulate email notification in the demo
     sonnerToast("تم إرسال إشعار", {
       description: `تم إرسال إشعار بتسجيل الدخول إلى ${email}`,
       action: {
@@ -116,7 +114,7 @@ export const loginUser = async (email: string, password: string): Promise<{
     // If profile doesn't exist in users table but auth was successful, create it
     if (!userProfile) {
       console.log('User authenticated but profile not found, creating profile');
-      const fullName = data.user?.user_metadata?.full_name || '';
+      const fullName = data.user?.user_metadata?.full_name || data.user?.user_metadata?.full_name_ar || '';
       const createSuccess = await createUserProfileIfNotExists(data.user.email || '', fullName);
       
       if (createSuccess) {
@@ -135,7 +133,6 @@ export const loginUser = async (email: string, password: string): Promise<{
     
     console.log('Login and profile fetching complete');
     
-    // Send email notification for login
     sendEmailNotification(
       userProfile.email,
       "تسجيل دخول جديد - منصة الطلبة اليمنيين",
@@ -184,6 +181,7 @@ export const signupUser = async (
       email,
       password,
       options: {
+        emailRedirectTo: `${window.location.origin}/`,
         data: {
           full_name_ar: nameAr,
           full_name_en: nameEn || nameAr,
@@ -206,9 +204,19 @@ export const signupUser = async (
     
     console.log("Auth signup successful, creating user profile");
     
-    // The trigger we set up in the database will handle creating the user profile
-    // We just need to wait a moment and then fetch the profile
+    // Wait a moment for the trigger to potentially create the profile
     await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Create user profile manually if trigger didn't work
+    const createSuccess = await createUserProfileIfNotExists(email, nameAr);
+    if (!createSuccess) {
+      console.error("Failed to create user profile");
+      return { 
+        success: false, 
+        userProfile: null, 
+        error: "فشل في إنشاء ملف المستخدم" 
+      };
+    }
     
     // Fetch the newly created user profile
     const userProfile = await fetchUserProfile(email);
@@ -223,7 +231,6 @@ export const signupUser = async (
     
     console.log("Signup and profile creation successful");
     
-    // Send email notification for account creation
     sendEmailNotification(
       email,
       "مرحباً بك في منصة الطلبة اليمنيين",
