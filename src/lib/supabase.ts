@@ -2,8 +2,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { Database } from '@/types/supabase';
 
-const supabaseUrl = "https://kowibkflehnvmhhdxhpu.supabase.co";
-const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtvd2lia2ZsZWhudm1oaGR4aHB1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2Njg5MDIsImV4cCI6MjA2MzI0NDkwMn0.XeLIehR-KeG-V1b-G2R4A5-ysOKneOE34jxb_0zXGHw";
+const supabaseUrl = "https://xueziitmykcjdmybfckc.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh1ZXppaXRteWtjamRteWJmY2tjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEyMDUzMjEsImV4cCI6MjA2Njc4MTMyMX0.q12sDpIMhywcHqT-kxjHSJ79wKJ9vgH16yS2XKO3IxQ";
 
 // Initialize the Supabase client with proper configuration for auth persistence
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
