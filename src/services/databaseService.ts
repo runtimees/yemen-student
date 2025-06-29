@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { User, Request, UploadedFile, NewsItem } from '@/types/database';
 
@@ -16,13 +17,13 @@ export const databaseService = {
     }
     
     return {
-      id: data.id,
+      id: data.id, // Keep as string (UUID)
       full_name_ar: data.full_name_ar,
       full_name_en: data.full_name_en,
       email: data.email,
       password_hash: '',
       phone_number: data.phone_number || undefined,
-      role: data.role,
+      role: data.role as 'student' | 'admin', // Proper type casting
       profile_picture_url: data.profile_picture_url || undefined,
       created_at: data.created_at
     };
@@ -68,24 +69,24 @@ export const databaseService = {
     }
     
     return {
-      id: parseInt(data.id),
+      id: data.id, // Keep as string (UUID)
       full_name_ar: data.full_name_ar,
       full_name_en: data.full_name_en,
       email: data.email,
       password_hash: '',
       phone_number: data.phone_number || undefined,
-      role: data.role,
+      role: data.role as 'student' | 'admin', // Proper type casting
       profile_picture_url: data.profile_picture_url || undefined,
       created_at: data.created_at
     };
   },
   
   // Request operations
-  getRequestsByUserId: async (userId: number): Promise<Request[]> => {
+  getRequestsByUserId: async (userId: string): Promise<Request[]> => {
     const { data, error } = await supabase
       .from('requests')
       .select('*')
-      .eq('user_id', userId.toString());
+      .eq('user_id', userId);
     
     if (error || !data) {
       console.error("Error fetching requests:", error);
@@ -93,8 +94,8 @@ export const databaseService = {
     }
     
     return data.map(item => ({
-      id: parseInt(item.id),
-      user_id: parseInt(item.user_id),
+      id: item.id, // Keep as string (UUID)
+      user_id: item.user_id, // Keep as string (UUID)
       service_type: item.service_type as any,
       status: item.status as any,
       request_number: item.request_number,
@@ -119,8 +120,8 @@ export const databaseService = {
     }
     
     return {
-      id: parseInt(data.id),
-      user_id: parseInt(data.user_id),
+      id: data.id, // Keep as string (UUID)
+      user_id: data.user_id, // Keep as string (UUID)
       service_type: data.service_type as any,
       status: data.status as any,
       request_number: data.request_number,
@@ -139,7 +140,7 @@ export const databaseService = {
     const { data, error } = await supabase
       .from('requests')
       .insert({
-        user_id: requestData.user_id.toString(),
+        user_id: requestData.user_id, // Keep as string (UUID)
         service_type: requestData.service_type,
         status: requestData.status,
         request_number: requestNumber,
@@ -157,8 +158,8 @@ export const databaseService = {
     }
     
     return {
-      id: parseInt(data.id),
-      user_id: parseInt(data.user_id),
+      id: data.id, // Keep as string (UUID)
+      user_id: data.user_id, // Keep as string (UUID)
       service_type: data.service_type as any,
       status: data.status as any,
       request_number: data.request_number,
@@ -171,11 +172,11 @@ export const databaseService = {
   },
   
   // File operations
-  getFilesByRequestId: async (requestId: number): Promise<UploadedFile[]> => {
+  getFilesByRequestId: async (requestId: string): Promise<UploadedFile[]> => {
     const { data, error } = await supabase
       .from('files')
       .select('*')
-      .eq('request_id', requestId.toString());
+      .eq('request_id', requestId);
     
     if (error || !data) {
       console.error("Error fetching files:", error);
@@ -183,8 +184,8 @@ export const databaseService = {
     }
     
     return data.map(item => ({
-      id: parseInt(item.id),
-      request_id: parseInt(item.request_id),
+      id: item.id, // Keep as string (UUID)
+      request_id: item.request_id, // Keep as string (UUID)
       file_type: item.file_type as any,
       file_path: item.file_path,
       uploaded_at: item.uploaded_at
@@ -214,7 +215,7 @@ export const databaseService = {
     const { data, error } = await supabase
       .from('files')
       .insert({
-        request_id: fileData.request_id.toString(),
+        request_id: fileData.request_id, // Keep as string (UUID)
         file_type: fileData.file_type,
         file_path: publicUrl
       })
@@ -227,8 +228,8 @@ export const databaseService = {
     }
     
     return {
-      id: parseInt(data.id),
-      request_id: parseInt(data.request_id),
+      id: data.id, // Keep as string (UUID)
+      request_id: data.request_id, // Keep as string (UUID)
       file_type: data.file_type as any,
       file_path: data.file_path,
       uploaded_at: data.uploaded_at

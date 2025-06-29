@@ -20,7 +20,17 @@ export const fetchUserProfile = async (email: string): Promise<User | null> => {
     }
     
     console.log('User profile fetched successfully:', data);
-    return data;
+    return {
+      id: data.id,
+      full_name_ar: data.full_name_ar || '',
+      full_name_en: data.full_name_en || '',
+      email: data.email,
+      password_hash: '', // Not stored in Supabase users table
+      phone_number: data.phone_number || undefined,
+      role: data.role as 'student' | 'admin',
+      profile_picture_url: data.profile_picture_url || undefined,
+      created_at: data.created_at
+    };
   } catch (error) {
     console.error('Exception fetching user profile:', error);
     return null;
@@ -28,7 +38,7 @@ export const fetchUserProfile = async (email: string): Promise<User | null> => {
 };
 
 // Function to create user profile if it doesn't exist
-export const createUserProfileIfNotExists = async (email: string, name: string, role: 'student' | 'admin' = 'student'): Promise<boolean> => {
+export const createUserProfileIfNotExists = async (email: string, name: string, userId: string, role: 'student' | 'admin' = 'student'): Promise<boolean> => {
   try {
     console.log('Creating user profile if not exists for email:', email);
     
@@ -39,12 +49,13 @@ export const createUserProfileIfNotExists = async (email: string, name: string, 
       return true;
     }
 
-    console.log('No existing profile found, creating new profile with:', { email, name, role });
+    console.log('No existing profile found, creating new profile with:', { email, name, role, userId });
 
-    // Create profile
+    // Create profile with the authenticated user's ID
     const { error } = await supabase
       .from('users')
       .insert({
+        id: userId, // Use the authenticated user's UUID
         full_name_ar: name,
         full_name_en: name,
         email: email,
@@ -114,8 +125,8 @@ export const loginUser = async (email: string, password: string): Promise<{
     // If profile doesn't exist in users table but auth was successful, create it
     if (!userProfile) {
       console.log('User authenticated but profile not found, creating profile');
-      const fullName = data.user?.user_metadata?.full_name || data.user?.user_metadata?.full_name_ar || '';
-      const createSuccess = await createUserProfileIfNotExists(data.user.email || '', fullName);
+      const fullName = data.user?.user_metadata?.full_name_ar || data.user?.user_metadata?.full_name || data.user?.user_metadata?.name || '';
+      const createSuccess = await createUserProfileIfNotExists(data.user.email || '', fullName, data.user.id);
       
       if (createSuccess) {
         userProfile = await fetchUserProfile(data.user.email || '');
@@ -208,7 +219,7 @@ export const signupUser = async (
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     // Create user profile manually if trigger didn't work
-    const createSuccess = await createUserProfileIfNotExists(email, nameAr);
+    const createSuccess = await createUserProfileIfNotExists(email, nameAr, data.user.id);
     if (!createSuccess) {
       console.error("Failed to create user profile");
       return { 

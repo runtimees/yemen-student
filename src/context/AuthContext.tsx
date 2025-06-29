@@ -66,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               
               if (profile) {
                 setUserProfile({
-                  id: profile.id,
+                  id: profile.id, // Keep as string (UUID)
                   full_name_ar: profile.full_name_ar || '',
                   full_name_en: profile.full_name_en || '',
                   email: profile.email,

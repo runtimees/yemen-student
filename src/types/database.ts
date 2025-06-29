@@ -1,15 +1,16 @@
+
 /**
  * Database Types for Yemen Student Platform
  * This file contains TypeScript interfaces that reflect the database design.
  */
 
-// User account types
+// User account types - Updated to match Supabase schema
 export interface User {
-  id: number;
+  id: string; // Changed from number to string (UUID)
   full_name_ar: string;
   full_name_en: string;
   email: string;
-  password_hash: string;
+  password_hash: string; // Keep for compatibility but not used in Supabase queries
   phone_number?: string;
   role: 'student' | 'admin';
   profile_picture_url?: string;
@@ -32,8 +33,8 @@ export type RequestStatus =
   'rejected';
 
 export interface Request {
-  id: number;
-  user_id: number;
+  id: string; // Changed from number to string (UUID)
+  user_id: string; // Changed from number to string (UUID)
   service_type: ServiceType;
   status: RequestStatus;
   request_number: string;
@@ -48,8 +49,8 @@ export interface Request {
 export type FileType = 'passport' | 'certificate' | 'visa_request' | 'other';
 
 export interface UploadedFile {
-  id: number;
-  request_id: number;
+  id: string; // Changed from number to string (UUID)
+  request_id: string; // Changed from number to string (UUID)
   file_type: FileType;
   file_path: string;
   uploaded_at: string; // ISO date string
@@ -57,7 +58,7 @@ export interface UploadedFile {
 
 // News item for announcement slider
 export interface NewsItem {
-  id: string; // Changed from number to string to handle UUIDs properly
+  id: string; // Already string to handle UUIDs properly
   title: string;
   content: string;
   is_active: boolean;
@@ -70,31 +71,31 @@ export type LibraryCategory = 'Medical' | 'Engineering' | 'IT';
 export type StudentCountry = 'Iraq' | 'Yemen';
 
 export interface StudentLibraryDocument {
-  id: number;
+  id: string; // Changed from number to string (UUID)
   title: string;
   description?: string;
   file_url: string;
   category: LibraryCategory;
   country: StudentCountry;
-  uploaded_by_admin_id?: number;
+  uploaded_by_admin_id?: string; // Changed from number to string (UUID)
   upload_date: string; // ISO date string
   created_at: string; // ISO date string
 }
 
 // Request tracking history
 export interface RequestTracking {
-  id: number;
-  request_id: number;
+  id: string; // Changed from number to string (UUID)
+  request_id: string; // Changed from number to string (UUID)
   status: RequestStatus;
   update_note?: string;
-  updated_by: number;
+  updated_by: string; // Changed from number to string (UUID)
   updated_at: string; // ISO date string
 }
 
 // User session
 export interface Session {
-  id: number;
-  user_id: number;
+  id: string; // Changed from number to string (UUID)
+  user_id: string; // Changed from number to string (UUID)
   session_token: string;
   expires_at: string; // ISO date string
   created_at: string; // ISO date string
@@ -102,8 +103,8 @@ export interface Session {
 
 // User notifications
 export interface Notification {
-  id: number;
-  user_id: number;
+  id: string; // Changed from number to string (UUID)
+  user_id: string; // Changed from number to string (UUID)
   title: string;
   message: string;
   is_read: boolean;
@@ -112,9 +113,9 @@ export interface Notification {
 
 // Service feedback
 export interface ServiceRating {
-  id: number;
-  request_id: number;
-  user_id: number;
+  id: string; // Changed from number to string (UUID)
+  request_id: string; // Changed from number to string (UUID)
+  user_id: string; // Changed from number to string (UUID)
   rating: number; // 1-5
   comment?: string;
   rated_at: string; // ISO date string
@@ -124,11 +125,11 @@ export interface ServiceRating {
 export type ActionType = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'LOGOUT';
 
 export interface AuditLog {
-  id: number;
-  user_id: number;
+  id: string; // Changed from number to string (UUID)
+  user_id: string; // Changed from number to string (UUID)
   action_type: ActionType;
   target_table: string;
-  target_id: number;
+  target_id: string; // Changed from number to string (UUID)
   description?: string;
   ip_address: string;
   created_at: string; // ISO date string
@@ -138,8 +139,8 @@ export interface AuditLog {
 export type DocumentType = 'passport' | 'certificate' | 'photo' | 'other';
 
 export interface UserDocument {
-  id: number;
-  user_id: number;
+  id: string; // Changed from number to string (UUID)
+  user_id: string; // Changed from number to string (UUID)
   document_type: DocumentType;
   file_path: string;
   uploaded_at: string; // ISO date string
@@ -149,8 +150,8 @@ export interface UserDocument {
 export type AdminRole = 'superadmin' | 'moderator' | 'support';
 
 export interface Admin {
-  id: number;
-  user_id: number;
+  id: string; // Changed from number to string (UUID)
+  user_id: string; // Changed from number to string (UUID)
   role: AdminRole;
   assigned_services: ServiceType[];
   created_at: string; // ISO date string
