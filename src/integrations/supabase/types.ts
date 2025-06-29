@@ -144,15 +144,7 @@ export type Database = {
           university_name?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "requests_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       student_library_documents: {
         Row: {
