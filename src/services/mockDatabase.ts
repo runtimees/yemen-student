@@ -1,4 +1,3 @@
-
 import { User, Request, NewsItem } from '@/types/database';
 
 // Mock data with string UUIDs
@@ -15,7 +14,6 @@ const mockUsers: User[] = [
   },
   {
     id: "550e8400-e29b-41d4-a716-446655440001",
-    user_id: "550e8400-e29b-41d4-a716-446655440000",
     full_name_ar: "فاطمة حسن",
     full_name_en: "Fatima Hassan",
     email: "fatima@example.com",
@@ -26,7 +24,6 @@ const mockUsers: User[] = [
   },
   {
     id: "550e8400-e29b-41d4-a716-446655440002",
-    user_id: "550e8400-e29b-41d4-a716-446655440001",
     full_name_ar: "عبد الله محمود",
     full_name_en: "Abdullah Mahmoud",
     email: "abdullah@example.com",

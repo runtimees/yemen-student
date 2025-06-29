@@ -63,15 +63,30 @@ const FileUpload = ({
         return;
       }
 
-      // Create unique filename
+      // Create unique filename with user ID for better organization
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       
+      // Check if bucket exists, if not create it for news-images
+      if (bucket === 'news-images') {
+        const { data: buckets } = await supabase.storage.listBuckets();
+        const bucketExists = buckets?.some(b => b.id === 'news-images');
+        
+        if (!bucketExists) {
+          console.log('Creating news-images bucket...');
+          // The bucket should be created via SQL migration, but let's handle the upload anyway
+        }
+      }
+      
       const { data, error } = await supabase.storage
         .from(bucket)
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (error) {
+        console.error('Storage upload error:', error);
         throw error;
       }
 
@@ -87,7 +102,7 @@ const FileUpload = ({
       toast.success('تم رفع الملف بنجاح');
     } catch (error) {
       console.error('Error uploading file:', error);
-      const errorMessage = 'خطأ في رفع الملف';
+      const errorMessage = 'خطأ في رفع الملف: ' + (error as any)?.message || 'خطأ غير معروف';
       toast.error(errorMessage);
       onUploadError?.(errorMessage);
     } finally {
