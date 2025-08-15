@@ -54,8 +54,8 @@ const LoginPrompt = ({ onClose }: LoginPromptProps) => {
           <div className="flex justify-center mb-4">
             <div className="rounded-full overflow-hidden border-4 border-yemen-red shadow-lg w-20 h-20">
               <img 
-                src="/lovable-uploads/3f42ec74-bc6b-49c4-8f8c-3a5e6895dc36.png" 
-                alt="Yemen Student Platform Logo" 
+                src="/lovable-uploads/336b3ba1-da29-454b-a892-70b85883b355.png" 
+                alt="شعار اتحاد الطلاب اليمنيين في العراق نجد" 
                 className="w-full h-full object-cover"
               />
             </div>
