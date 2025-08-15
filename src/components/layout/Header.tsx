@@ -39,7 +39,7 @@ const Header = () => {
             <div className="flex items-center space-x-3 space-x-reverse">
               <div className="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden bg-white">
                 <img 
-                  src="/lovable-uploads/336b3ba1-da29-454b-a892-70b85883b355.png" 
+                  src="/lovable-uploads/336b3ba1-da29-454b-a892-70b85883b355.png?v=2" 
                   alt="شعار اتحاد الطلاب اليمنيين في العراق نجد" 
                   className="w-full h-full object-cover"
                 />
