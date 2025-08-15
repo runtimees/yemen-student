@@ -36,7 +36,7 @@ const Index = () => {
     if (isAuthenticated && userProfile) {
       toast({
         title: `مرحباً ${userProfile.full_name_ar}`, 
-        description: "أنت مسجل الدخول في منصة الطلبة اليمنيين نجد",
+        description: "أنت مسجل الدخول في اتحاد الطلاب اليمنيين في العراق نجد",
       });
     }
   }, [isAuthenticated, userProfile]);
@@ -130,7 +130,7 @@ const Index = () => {
             </div>
           </div>
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 fade-in" style={{ animationDelay: '0.4s' }}>
-            منصة الطلبة اليمنيين في العراق "نجد"
+            اتحاد الطلاب اليمنيين في العراق نجد
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-gray-200 fade-in" style={{ animationDelay: '0.6s' }}>
             نحو تعليم عالٍ أسهل وأكثر تمكينًا
@@ -279,7 +279,7 @@ const Index = () => {
           <div className="max-w-3xl mx-auto text-center fade-in">
             <h2 className="text-3xl font-bold mb-6 text-yemen-black">عن المنصة</h2>
             <p className="text-lg text-gray-700 mb-8 leading-relaxed">
-              منصة الطلبة اليمنيين في العراق هي منصة متكاملة تهدف إلى تسهيل وتحسين تجربة الطلاب اليمنيين الدارسين في العراق،
+              اتحاد الطلاب اليمنيين في العراق نجد هو منصة متكاملة تهدف إلى تسهيل وتحسين تجربة الطلاب اليمنيين الدارسين في العراق،
               من خلال توفير خدمات إلكترونية متنوعة تشمل توثيق الشهادات وتجديد جوازات السفر وتسهيل إجراءات الحصول على تأشيرات الدخول،
               بالإضافة إلى متابعة حالة الطلبات المقدمة بشكل إلكتروني.
             </p>

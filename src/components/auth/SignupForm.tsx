@@ -67,7 +67,7 @@ const SignupForm = ({ open, onOpenChange, onSwitchToLogin }: SignupFormProps) =>
       if (success) {
         toast({
           title: "تم إنشاء الحساب بنجاح",
-          description: "مرحباً بك في منصة الطلبة اليمنيين",
+          description: "مرحباً بك في اتحاد الطلاب اليمنيين في العراق نجد",
         });
         onOpenChange(false);
       } else {

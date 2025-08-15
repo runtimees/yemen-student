@@ -39,12 +39,12 @@ const Header = () => {
             <div className="flex items-center space-x-3 space-x-reverse">
               <div className="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden bg-white">
                 <img 
-                  src="/lovable-uploads/57d4da83-eb7a-4fdc-9ebe-17764bf6e3d2.png" 
-                  alt="شعار منصة نجد" 
+                  src="/lovable-uploads/336b3ba1-da29-454b-a892-70b85883b355.png" 
+                  alt="شعار اتحاد الطلاب اليمنيين في العراق نجد" 
                   className="w-full h-full object-cover"
                 />
               </div>
-              <h1 className="text-lg font-bold">منصة الطلبة اليمنيين في العراق "نجد"</h1>
+              <h1 className="text-lg font-bold">اتحاد الطلاب اليمنيين في العراق نجد</h1>
             </div>
 
             {/* Center - Navigation Icons with Tooltips */}

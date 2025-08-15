@@ -33,7 +33,7 @@ const AdminDashboard = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">لوحة التحكم الإدارية</h1>
-          <p className="text-gray-600">إدارة منصة الطلبة اليمنيين</p>
+          <p className="text-gray-600">إدارة اتحاد الطلاب اليمنيين في العراق نجد</p>
           {userProfile.role !== 'admin' && (
             <div className="mt-2 p-3 bg-yellow-100 border border-yellow-400 rounded-md">
               <p className="text-yellow-800 text-sm">
