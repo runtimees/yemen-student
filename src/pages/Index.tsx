@@ -167,7 +167,15 @@ const Index = () => {
             </TabsList>
             
             <TabsContent value="services">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+              {/* Temporary Unavailability Notice */}
+              <div className="mb-6 p-4 bg-yellow-50 border border-yellow-300 rounded-lg text-center">
+                <div className="flex items-center justify-center gap-2 text-yellow-800">
+                  <span className="text-xl">⚠️</span>
+                  <p className="font-medium">الخدمات غير متاحة مؤقتاً - سيتم إعادة تفعيلها قريباً</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 opacity-50 pointer-events-none">
                 {features.map((feature, index) => (
                   <div 
                     key={index} 
