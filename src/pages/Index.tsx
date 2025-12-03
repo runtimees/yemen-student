@@ -171,7 +171,7 @@ const Index = () => {
               <div className="mb-6 p-4 bg-yellow-50 border border-yellow-300 rounded-lg text-center">
                 <div className="flex items-center justify-center gap-2 text-yellow-800">
                   <span className="text-xl">⚠️</span>
-                  <p className="font-medium">Services temporarily suspended</p>
+                  <p className="font-medium">الخدمات معلقة مؤقتاً</p>
                 </div>
               </div>
               
